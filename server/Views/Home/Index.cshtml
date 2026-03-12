@@ -1,0 +1,68 @@
+@{
+    ViewData["Title"] = "SafeHarbor";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SafeHarbor</title>
+    <link rel="stylesheet" href="~/css/landing.css" />
+</head>
+<body>
+    <main class="landing">
+        <div class="background-shapes" aria-hidden="true">
+            <div class="shape shape-a"></div>
+            <div class="shape shape-b"></div>
+            <div class="shape shape-c"></div>
+        </div>
+
+        <section class="card">
+            <div class="brand">
+                <div class="logo-box">
+                    <span class="logo-wave">~</span>
+                </div>
+                <h1>SafeHarbor</h1>
+                <p>Your anonymous mental health companion. No judgment, no account required.</p>
+            </div>
+
+            <button id="privacy-toggle" class="privacy-button" type="button" aria-expanded="false">
+                <span class="privacy-shield">[]</span>
+                <span class="privacy-text">Our Privacy Promise</span>
+                <span id="privacy-icon" class="privacy-eye">Show</span>
+            </button>
+
+            <section id="privacy-panel" class="privacy-panel hidden">
+                <ul>
+                    <li>All data stays on your device, always.</li>
+                    <li>No accounts, no emails, no tracking.</li>
+                    <li>Clear your data anytime from your browser.</li>
+                </ul>
+            </section>
+
+            <section class="action-area">
+                <div id="returning-user" class="hidden">
+                    <div class="welcome-box">
+                        <p class="welcome-subtitle">Welcome back,</p>
+                        <p id="welcome-alias" class="welcome-alias"></p>
+                    </div>
+                    <a class="primary-button" href="/dashboard">Continue to Dashboard</a>
+                </div>
+
+                <div id="new-user">
+                    <label for="alias-input">Pick a nickname (only stored on your device)</label>
+                    <input id="alias-input" type="text" placeholder="e.g. Peaceful Panda" maxlength="24" autocomplete="off" />
+                    <button id="start-button" class="primary-button" type="button" disabled>Begin Your Journey</button>
+                </div>
+            </section>
+
+            <p class="footer-note">
+                SafeHarbor is not a crisis service. If you are in danger, use emergency services immediately.
+            </p>
+        </section>
+    </main>
+
+    <script src="~/js/landing.js"></script>
+</body>
+</html>
