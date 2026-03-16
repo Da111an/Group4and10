@@ -1,6 +1,6 @@
 # Node
 client/node_modules/
-client/dist/
+
 
 # .NET
 server/bin/
