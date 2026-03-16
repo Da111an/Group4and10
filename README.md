@@ -55,6 +55,7 @@ contacts) without navigating away from the current page.
 While the user is exploring resources, the System shall present information in a
 non-judgmental, non-clinical tone that avoids directive language such as "you
 must" or "you should."
+
 INCOMPLETE:
 1. Ubiquitous
 The System shall be accessible on both mobile and desktop devices and load all
