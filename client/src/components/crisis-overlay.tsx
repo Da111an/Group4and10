@@ -39,7 +39,8 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Crisis help"
+      aria-labelledby="crisis-dialog-title"
+      aria-describedby="crisis-dialog-desc"
     >
       <div
         className="w-full max-w-lg animate-in slide-in-from-bottom-4 rounded-t-3xl bg-card px-6 pb-10 pt-6 shadow-2xl"
@@ -47,14 +48,14 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
       >
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10" aria-hidden="true">
               <Heart className="h-5 w-5 text-destructive" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 id="crisis-dialog-title" className="text-lg font-bold text-foreground">
                 You Are Not Alone
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p id="crisis-dialog-desc" className="text-xs text-muted-foreground">
                 Help is available right now.
               </p>
             </div>
@@ -73,6 +74,7 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
           <a
             href="tel:988"
             className="safe-harbor-transition flex items-center gap-4 rounded-2xl border border-destructive/20 bg-destructive/5 p-4 hover:bg-destructive/10"
+            aria-label="Call 988 Suicide and Crisis Lifeline - Free and confidential, 24/7"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
               <Phone className="h-6 w-6" />
@@ -90,6 +92,7 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
           <a
             href="sms:741741&body=HOME"
             className="safe-harbor-transition flex items-center gap-4 rounded-2xl border border-border bg-card p-4 hover:bg-muted"
+            aria-label="Text HOME to 741741 for Crisis Text Line - Free and confidential, 24/7"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
               <MessageCircle className="h-6 w-6" />
@@ -105,6 +108,7 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
           <a
             href="tel:911"
             className="safe-harbor-transition flex items-center gap-4 rounded-2xl border border-border bg-card p-4 hover:bg-muted"
+            aria-label="Call 911 for emergency services - For immediate danger"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-chart-4/10 text-chart-4">
               <Phone className="h-6 w-6" />

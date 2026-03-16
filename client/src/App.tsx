@@ -1,12 +1,19 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, lazy, Suspense } from "react"
 import { useMoodEntries, useUserProfile } from "@/hooks/use-safe-harbor-store"
 import { LandingScreen } from "@/components/screens/landing-screen"
-import { DashboardScreen } from "@/components/screens/dashboard-screen"
-import { MoodLoggerScreen } from "@/components/screens/mood-logger-screen"
-import { ResourceScreen } from "@/components/screens/resource-screen"
 import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
 import { getTodayMood } from "@/api/mood"
+
+const DashboardScreen = lazy(() =>
+  import("@/components/screens/dashboard-screen").then((m) => ({ default: m.DashboardScreen }))
+)
+const MoodLoggerScreen = lazy(() =>
+  import("@/components/screens/mood-logger-screen").then((m) => ({ default: m.MoodLoggerScreen }))
+)
+const ResourceScreen = lazy(() =>
+  import("@/components/screens/resource-screen").then((m) => ({ default: m.ResourceScreen }))
+)
 
 type Screen = "landing" | "dashboard" | "mood" | "resources"
 
@@ -49,9 +56,9 @@ export default function App() {
 
   if (!profileLoaded || !entriesLoaded) {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center" role="status" aria-live="polite" aria-label="Loading SafeHarbor">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">Loading SafeHarbor...</p>
         </div>
       </div>
@@ -76,7 +83,14 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg">
+    <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+      <Suspense
+        fallback={
+          <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+          </div>
+        }
+      >
       {currentScreen === "dashboard" && (
         <DashboardScreen
           alias={profile?.alias ?? "Friend"}
@@ -97,6 +111,7 @@ export default function App() {
       {currentScreen === "resources" && (
         <ResourceScreen onBack={() => setCurrentScreen("dashboard")} />
       )}
+      </Suspense>
 
       <FluidNav
         currentScreen={currentScreen}

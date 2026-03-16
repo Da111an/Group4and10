@@ -94,7 +94,7 @@ export function MoodLoggerScreen({
           className="flex items-center gap-2 self-start text-sm text-muted-foreground"
           aria-label="Back to dashboard"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Dashboard
         </button>
 
@@ -167,11 +167,11 @@ export function MoodLoggerScreen({
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
         aria-label="Back to dashboard"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Dashboard
       </button>
 
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-2" role="progressbar" aria-valuenow={step === "mood" ? 1 : step === "sleep" ? 2 : 3} aria-valuemin={1} aria-valuemax={3} aria-label="Check-in progress">
         {(["mood", "sleep", "emotions"] as const).map((s) => (
           <div
             key={s}
@@ -208,9 +208,12 @@ export function MoodLoggerScreen({
                       ? opt.color + " border-current"
                       : "border-border bg-card hover:border-primary/20"
                   }`}
+                  aria-label={`Select ${opt.label} as your mood`}
+                  aria-pressed={mood === opt.value}
                 >
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-xl ${opt.color}`}
+                    aria-hidden="true"
                   >
                     <Icon className="h-5 w-5" />
                   </div>

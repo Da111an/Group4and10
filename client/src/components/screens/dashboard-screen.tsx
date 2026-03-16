@@ -73,7 +73,7 @@ export function DashboardScreen({
       : "--"
 
   return (
-    <div className="flex flex-col gap-5 px-5 pb-28 pt-6">
+    <div className="flex flex-col gap-5 px-5 pb-28 pt-6" role="main">
       <div>
         <p className="text-sm text-muted-foreground">{getGreeting()},</p>
         <h1 className="text-2xl font-bold text-foreground">{alias}</h1>
@@ -83,6 +83,7 @@ export function DashboardScreen({
         <button
           onClick={() => onNavigate("mood")}
           className="safe-harbor-transition col-span-2 flex items-center gap-4 rounded-2xl border border-border bg-card p-5 text-left hover:border-primary/30 active:scale-[0.99]"
+          aria-label={todayEntry ? `Today's check-in: You're feeling ${moodLabels[todayEntry.mood]?.toLowerCase()}. Tap to log mood.` : "Daily check-in. Tap to log how you're feeling today."}
         >
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
@@ -90,6 +91,7 @@ export function DashboardScreen({
                 ? "bg-primary/10 text-primary"
                 : "bg-chart-4/15 text-chart-4"
             }`}
+            aria-hidden="true"
           >
             {todayEntry ? (
               getMoodIcon(todayEntry.mood)
@@ -110,10 +112,10 @@ export function DashboardScreen({
           <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
         </button>
 
-        <div className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
+        <section className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5" aria-label="Mood trend chart">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
               <span className="text-sm font-semibold text-foreground">
                 Mood Trend
               </span>
@@ -174,11 +176,11 @@ export function DashboardScreen({
               </p>
             </div>
           )}
-        </div>
+        </section>
 
         <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2">
-            <Smile className="h-4 w-4 text-primary" />
+            <Smile className="h-4 w-4 text-primary" aria-hidden="true" />
             <span className="text-xs font-medium text-muted-foreground">
               Avg Mood
             </span>
@@ -194,7 +196,7 @@ export function DashboardScreen({
 
         <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center gap-2">
-            <Moon className="h-4 w-4 text-secondary" />
+            <Moon className="h-4 w-4 text-secondary" aria-hidden="true" />
             <span className="text-xs font-medium text-muted-foreground">
               Avg Sleep
             </span>
@@ -211,8 +213,9 @@ export function DashboardScreen({
         <button
           onClick={() => onNavigate("resources")}
           className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98]"
+          aria-label="View support resources and guides"
         >
-          <BookOpen className="h-5 w-5 text-primary" />
+          <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
           <div>
             <p className="text-sm font-semibold text-foreground">Resources</p>
             <p className="text-xs text-muted-foreground">Support & guides</p>
@@ -222,8 +225,9 @@ export function DashboardScreen({
         <button
           onClick={() => onNavigate("mood")}
           className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98]"
+          aria-label={`View mood history. ${entries.length} ${entries.length === 1 ? "entry" : "entries"} logged`}
         >
-          <Clock className="h-5 w-5 text-secondary" />
+          <Clock className="h-5 w-5 text-secondary" aria-hidden="true" />
           <div>
             <p className="text-sm font-semibold text-foreground">History</p>
             <p className="text-xs text-muted-foreground">

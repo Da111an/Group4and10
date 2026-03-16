@@ -32,8 +32,8 @@ export function LandingScreen({
   }
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+    <main id="main-content" className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/5" />
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-secondary/5" />
         <div className="absolute top-1/3 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-accent/30" />
@@ -41,7 +41,7 @@ export function LandingScreen({
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10" aria-hidden="true">
             <Waves className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-balance text-center text-3xl font-bold tracking-tight text-foreground">
@@ -56,6 +56,8 @@ export function LandingScreen({
           onClick={() => setShowPrivacy(!showPrivacy)}
           className="safe-harbor-transition flex w-full items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-left hover:border-primary/30"
           aria-expanded={showPrivacy}
+          aria-controls="privacy-panel"
+          aria-label={showPrivacy ? "Hide privacy promise" : "Show privacy promise"}
         >
           <Shield className="h-5 w-5 shrink-0 text-primary" />
           <span className="flex-1 text-sm font-medium text-foreground">
@@ -69,7 +71,7 @@ export function LandingScreen({
         </button>
 
         {showPrivacy && (
-          <div className="w-full rounded-xl bg-accent/50 px-5 py-4">
+          <div id="privacy-panel" className="w-full rounded-xl bg-accent/50 px-5 py-4" role="region" aria-label="Privacy promise details">
             <ul className="flex flex-col gap-3 text-sm leading-relaxed text-accent-foreground">
               <li className="flex items-start gap-2">
                 <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -99,9 +101,10 @@ export function LandingScreen({
               <button
                 onClick={handleStart}
                 className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
+                aria-label="Continue to Dashboard"
               >
                 Continue to Dashboard
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
           ) : (
@@ -120,7 +123,7 @@ export function LandingScreen({
                   onChange={(e) => setAlias(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && alias.trim() && handleStart()}
                   placeholder="e.g. Peaceful Panda"
-                  className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary"
                   maxLength={24}
                   autoComplete="off"
                 />
@@ -129,8 +132,9 @@ export function LandingScreen({
                 onClick={handleStart}
                 disabled={!alias.trim()}
                 className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Begin your journey with your chosen nickname"
               >
-                <Heart className="h-5 w-5" />
+                <Heart className="h-5 w-5" aria-hidden="true" />
                 Begin Your Journey
               </button>
             </div>

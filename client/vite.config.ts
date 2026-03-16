@@ -7,6 +7,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-recharts": ["recharts"],
+          "vendor-lucide": ["lucide-react"],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

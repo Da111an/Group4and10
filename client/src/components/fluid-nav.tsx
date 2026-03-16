@@ -36,9 +36,9 @@ export function FluidNav({
                   : "text-muted-foreground hover:text-foreground"
               }`}
               aria-current={isActive ? "page" : undefined}
-              aria-label={item.label}
+              aria-label={`${item.label}${isActive ? " (current page)" : ""}`}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5" aria-hidden="true" />
               <span className="text-[10px] font-medium">{item.label}</span>
             </button>
           )
@@ -49,9 +49,9 @@ export function FluidNav({
         <button
           onClick={onCrisis}
           className="safe-harbor-transition flex flex-col items-center gap-1 rounded-xl bg-destructive/10 px-4 py-2 text-destructive hover:bg-destructive/15 active:scale-[0.96]"
-          aria-label="Crisis help"
+          aria-label="Crisis help - 988 lifeline, Crisis Text Line, emergency services"
         >
-          <Heart className="h-5 w-5" />
+          <Heart className="h-5 w-5" aria-hidden="true" />
           <span className="text-[10px] font-bold">SOS</span>
         </button>
       </div>

@@ -117,13 +117,13 @@ export function ResourceScreen({ onBack }: ResourceScreenProps) {
   })
 
   return (
-    <div className="flex flex-col gap-5 px-5 pb-28 pt-6">
+    <main className="flex flex-col gap-5 px-5 pb-28 pt-6" role="main">
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
         aria-label="Back to dashboard"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Dashboard
       </button>
 
@@ -153,6 +153,7 @@ export function ResourceScreen({ onBack }: ResourceScreenProps) {
             onClick={() => setFilter(f.key)}
             role="radio"
             aria-checked={filter === f.key}
+            aria-label={`Filter ${f.label} resources`}
             className={`safe-harbor-transition flex-1 rounded-lg px-4 py-2 text-sm font-medium ${
               filter === f.key
                 ? "bg-card text-foreground shadow-sm"
@@ -217,8 +218,9 @@ export function ResourceScreen({ onBack }: ResourceScreenProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="safe-harbor-transition flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+                    aria-label={`Visit ${resource.name} website`}
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                     Visit
                   </a>
                 )}
@@ -227,6 +229,6 @@ export function ResourceScreen({ onBack }: ResourceScreenProps) {
           )
         })}
       </div>
-    </div>
+    </main>
   )
 }
