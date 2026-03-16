@@ -1,0 +1,51 @@
+using Microsoft.EntityFrameworkCore;
+using Server.Models;
+
+namespace Server.Data;
+
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+{
+    public DbSet<User> Users { get; set; }
+    public DbSet<Session> Sessions { get; set; }
+    public DbSet<MoodEntry> MoodEntries { get; set; }
+    public DbSet<Interaction> Interactions { get; set; }
+    public DbSet<Contact> Contacts { get; set; }
+    public DbSet<Resource> Resources { get; set; }
+    public DbSet<Testimonial> Testimonials { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>().HasKey(u => u.UserId);
+
+        modelBuilder.Entity<Session>()
+            .HasKey(s => s.SessionId);
+        modelBuilder.Entity<Session>()
+            .HasOne(s => s.User)
+            .WithMany(u => u.Sessions)
+            .HasForeignKey(s => s.UserId);
+
+        modelBuilder.Entity<MoodEntry>()
+            .HasKey(m => m.EntryId);
+        modelBuilder.Entity<MoodEntry>()
+            .HasOne(m => m.User)
+            .WithMany(u => u.MoodEntries)
+            .HasForeignKey(m => m.UserId);
+
+        modelBuilder.Entity<Interaction>()
+            .HasKey(i => i.InteractionId);
+        modelBuilder.Entity<Interaction>()
+            .HasOne(i => i.User)
+            .WithMany(u => u.Interactions)
+            .HasForeignKey(i => i.UserId);
+
+        modelBuilder.Entity<Contact>()
+            .HasKey(c => c.ContactId);
+        modelBuilder.Entity<Contact>()
+            .HasOne(c => c.User)
+            .WithMany(u => u.Contacts)
+            .HasForeignKey(c => c.UserId);
+
+        modelBuilder.Entity<Resource>().HasKey(r => r.ResourceId);
+        modelBuilder.Entity<Testimonial>().HasKey(t => t.TestimonialId);
+    }
+}
