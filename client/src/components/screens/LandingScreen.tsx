@@ -1,0 +1,171 @@
+"use client"
+
+import { useState } from "react"
+import {
+  Shield,
+  Heart,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Waves,
+} from "lucide-react"
+
+interface LandingScreenProps {
+  isReturningUser: boolean
+  userAlias?: string
+  onContinue: () => void
+  onCreateProfile: (alias: string) => void
+}
+
+export function LandingScreen({
+  isReturningUser,
+  userAlias,
+  onContinue,
+  onCreateProfile,
+}: LandingScreenProps) {
+  const [alias, setAlias] = useState("")
+  const [showPrivacy, setShowPrivacy] = useState(false)
+
+  const handleStart = () => {
+    if (!isReturningUser && alias.trim()) {
+      onCreateProfile(alias.trim())
+    }
+    onContinue()
+  }
+
+  return (
+    <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
+      {/* Decorative background wave shapes */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/5" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-secondary/5" />
+        <div className="absolute top-1/3 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-accent/30" />
+      </div>
+
+      <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8">
+        {/* Logo & Title */}
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+            <Waves className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="text-balance text-center text-3xl font-bold tracking-tight text-foreground">
+            SafeHarbor
+          </h1>
+          <p className="text-center text-lg leading-relaxed text-muted-foreground">
+            Your anonymous mental health companion. No judgment, no account required.
+          </p>
+        </div>
+
+        {/* Privacy Pledge */}
+        <button
+          onClick={() => setShowPrivacy(!showPrivacy)}
+          className="safe-harbor-transition flex w-full items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-left hover:border-primary/30"
+          aria-expanded={showPrivacy}
+        >
+          <Shield className="h-5 w-5 shrink-0 text-primary" />
+          <span className="flex-1 text-sm font-medium text-foreground">
+            Our Privacy Promise
+          </span>
+          {showPrivacy ? (
+            <EyeOff className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
+
+        {showPrivacy && (
+          <div className="w-full rounded-xl bg-accent/50 px-5 py-4">
+            <ul className="flex flex-col gap-3 text-sm leading-relaxed text-accent-foreground">
+              <li className="flex items-start gap-2">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>All data stays on your device, always.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>No accounts, no emails, no tracking.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>Clear your data anytime from your browser.</span>
+              </li>
+            </ul>
+          </div>
+        )}
+
+        {/* Action Area */}
+        <div className="flex w-full flex-col gap-4">
+          {isReturningUser ? (
+            /* Returning User */
+            <div className="flex flex-col gap-4">
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-5 py-4 text-center">
+                <p className="text-sm text-muted-foreground">Welcome back,</p>
+                <p className="mt-1 text-lg font-semibold text-foreground">
+                  {userAlias}
+                </p>
+              </div>
+              <button
+                onClick={handleStart}
+                className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
+              >
+                Continue to Dashboard
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            /* New Visitor */
+            <div className="flex flex-col gap-4">
+              {/* Crisis Help Button */}
+              <button
+                type="button"
+                className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-red-50 px-6 py-4 text-base font-semibold text-red-700 hover:bg-red-100 active:scale-[0.98]"
+                onClick={() => {
+                  // TODO: Connect to crisis overlay/modal if available
+                  window.open('https://988lifeline.org/', '_blank');
+                }}
+                aria-label="Need Immediate Help?"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0-1.243 1.007-2.25 2.25-2.25h2.386c.966 0 1.797.66 2.06 1.594l.527 1.845a2.25 2.25 0 0 1-.516 2.252l-.845.845a15.045 15.045 0 0 0 6.364 6.364l.845-.845a2.25 2.25 0 0 1 2.252-.516l1.845.527c.934.263 1.594 1.094 1.594 2.06v2.386a2.25 2.25 0 0 1-2.25 2.25h-.75C6.798 21 3 17.202 3 12.75v-.75z" />
+                </svg>
+                Need Immediate Help?
+              </button>
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="alias-input"
+                  className="text-sm font-medium text-muted-foreground"
+                >
+                  Pick a nickname (only stored on your device)
+                </label>
+                <input
+                  id="alias-input"
+                  type="text"
+                  value={alias}
+                  onChange={(e) => setAlias(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && alias.trim() && handleStart()}
+                  placeholder="e.g. Peaceful Panda"
+                  className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  maxLength={24}
+                  autoComplete="off"
+                />
+              </div>
+              <button
+                onClick={handleStart}
+                disabled={!alias.trim()}
+                className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Heart className="h-5 w-5" />
+                Begin Your Journey
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Subtle footer */}
+        <p className="mt-4 max-w-xs text-center text-xs leading-relaxed text-muted-foreground/60">
+          SafeHarbor is not a crisis service. If you are in danger, please use
+          the Crisis Help button available on every screen.
+        </p>
+      </div>
+    </main>
+  )
+}

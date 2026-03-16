@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
+  background-color: hsl(40, 33%, 96%);
+  color: hsl(200, 25%, 20%);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --font-nunito: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
+    --font-dm-sans: 'Avenir Next', 'Helvetica Neue', system-ui, sans-serif;
+    --background: 40 33% 96%;
+    --foreground: 200 25% 20%;
+    --card: 40 30% 98%;
+    --card-foreground: 200 25% 20%;
+    --popover: 40 30% 98%;
+    --popover-foreground: 200 25% 20%;
+    --primary: 150 30% 42%;
+    --primary-foreground: 40 33% 98%;
+    --secondary: 210 20% 52%;
+    --secondary-foreground: 40 33% 98%;
+    --muted: 150 15% 92%;
+    --muted-foreground: 200 15% 46%;
+    --accent: 150 20% 88%;
+    --accent-foreground: 150 30% 30%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 15% 86%;
+    --input: 150 15% 86%;
+    --ring: 150 30% 42%;
+    --chart-1: 150 30% 42%;
+    --chart-2: 210 20% 52%;
+    --chart-3: 150 20% 60%;
+    --chart-4: 35 60% 60%;
+    --chart-5: 210 30% 40%;
+    --radius: 0.75rem;
+    --sidebar-background: 40 30% 97%;
+    --sidebar-foreground: 200 25% 20%;
+    --sidebar-primary: 150 30% 42%;
+    --sidebar-primary-foreground: 40 33% 98%;
+    --sidebar-accent: 150 20% 88%;
+    --sidebar-accent-foreground: 150 30% 30%;
+    --sidebar-border: 150 15% 86%;
+    --sidebar-ring: 150 30% 42%;
+  }
+  /* * {
+    @apply border-border;
+  } */
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
