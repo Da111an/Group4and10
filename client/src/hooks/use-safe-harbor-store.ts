@@ -20,6 +20,22 @@ const STORAGE_KEYS = {
   USER_PROFILE: "safeharbor_user_profile",
 }
 
+// --- NEW: Helper to generate 7 days of dummy data for chart validation ---
+const generateHardcodedEntries = (): MoodEntry[] => {
+  return Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - i) // 0 is today, 1 is yesterday, etc.
+    return {
+      id: crypto.randomUUID(),
+      date: d.toISOString().split("T")[0],
+      mood: Math.floor(Math.random() * 3) + 2, // Random mood between 2 and 4
+      sleep: Math.floor(Math.random() * 4) + 5, // Random sleep between 5 and 8
+      emotions: ["calm", "focused"],
+      note: "Hardcoded sprint validation entry",
+    }
+  })
+}
+
 export function useMoodEntries() {
   const [entries, setEntries] = useState<MoodEntry[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
@@ -27,8 +43,13 @@ export function useMoodEntries() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.MOOD_ENTRIES)
-      if (stored) {
+      if (stored && JSON.parse(stored).length > 0) {
         setEntries(JSON.parse(stored))
+      } else {
+        // INJECT HARDCODED DATA IF EMPTY
+        const dummyData = generateHardcodedEntries()
+        setEntries(dummyData)
+        localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(dummyData))
       }
     } catch {
       // silently fail
@@ -77,6 +98,15 @@ export function useUserProfile() {
         parsed.lastVisit = new Date().toISOString()
         setProfile(parsed)
         localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(parsed))
+      } else {
+        // INJECT HARDCODED USER
+        const dummyUser: UserProfile = {
+          alias: "Alex",
+          createdAt: new Date().toISOString(),
+          lastVisit: new Date().toISOString(),
+        }
+        setProfile(dummyUser)
+        localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(dummyUser))
       }
     } catch {
       // silently fail

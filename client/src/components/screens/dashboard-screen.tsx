@@ -55,12 +55,20 @@ export function DashboardScreen({
   todayEntry,
   onNavigate,
 }: DashboardScreenProps) {
+  // Get last 7 entries and reverse them so they go from oldest to newest (left to right)
   const recentEntries = entries.slice(0, 7).reverse()
-  const chartData = recentEntries.map((e) => ({
-    day: new Date(e.date).toLocaleDateString("en-US", { weekday: "short" }),
-    mood: e.mood,
-    sleep: e.sleep,
-  }))
+  
+  const chartData = recentEntries.map((e) => {
+    // FIX: Split the string to avoid timezone shifting bugs (e.g., Tuesday appearing as Monday)
+    const [year, month, day] = e.date.split("-").map(Number)
+    const localDate = new Date(year, month - 1, day)
+    
+    return {
+      day: localDate.toLocaleDateString("en-US", { weekday: "short" }),
+      mood: e.mood,
+      sleep: e.sleep,
+    }
+  })
 
   const avgMood =
     entries.length > 0
