@@ -1,12 +1,25 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";       // Header the frontend sends the token in
+    options.Cookie.Name = "XSRF-TOKEN";         // Cookie name the frontend reads from
+    options.Cookie.HttpOnly = false;             // Must be false so JavaScript can read it
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
+
+builder.Services.AddSingleton<PasswordHasherService>();
+
+builder.Services.AddControllersWithViews(options =>
+    options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>());
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
