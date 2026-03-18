@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Models;
+using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
     EnsureUserAccountEmailSchema(db);
+    EnsureDefaultAuthAccount(db);
 }
 
 if (app.Environment.IsDevelopment())
@@ -81,4 +84,31 @@ static void TryExecuteSql(AppDbContext db, string sql)
     {
         // Ignore schema-already-exists errors to keep startup idempotent.
     }
+}
+
+static void EnsureDefaultAuthAccount(AppDbContext db)
+{
+    const string email = "a@gmail.com";
+    const string password = "a";
+    const string fullName = "Team Account";
+
+    var normalizedEmail = email.ToUpperInvariant();
+    var accountExists = db.UserAccounts.Any(x => x.NormalizedEmail == normalizedEmail);
+    if (accountExists)
+    {
+        return;
+    }
+
+    db.UserAccounts.Add(new UserAccount
+    {
+        FullName = fullName,
+        Username = email,
+        NormalizedUsername = email.ToUpperInvariant(),
+        Email = email,
+        NormalizedEmail = normalizedEmail,
+        PasswordHash = PasswordHashService.HashPassword(password),
+        CreatedUtc = DateTime.UtcNow
+    });
+
+    db.SaveChanges();
 }
