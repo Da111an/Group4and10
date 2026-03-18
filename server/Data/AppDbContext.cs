@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Contact> Contacts { get; set; }
     public DbSet<Resource> Resources { get; set; }
     public DbSet<Testimonial> Testimonials { get; set; }
+    public DbSet<UserAccount> UserAccounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,5 +48,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
         modelBuilder.Entity<Resource>().HasKey(r => r.ResourceId);
         modelBuilder.Entity<Testimonial>().HasKey(t => t.TestimonialId);
+
+        modelBuilder.Entity<UserAccount>(entity =>
+        {
+            entity.HasIndex(x => x.NormalizedUsername).IsUnique();
+            entity.HasIndex(x => x.NormalizedEmail)
+                .IsUnique()
+                .HasFilter("\"NormalizedEmail\" <> ''");
+            entity.Property(x => x.FullName).HasMaxLength(120);
+            entity.Property(x => x.Username).HasMaxLength(100);
+            entity.Property(x => x.NormalizedUsername).HasMaxLength(100);
+            entity.Property(x => x.Email).HasMaxLength(200);
+            entity.Property(x => x.NormalizedEmail).HasMaxLength(200);
+            entity.Property(x => x.PasswordHash).HasMaxLength(500);
+        });
     }
 }

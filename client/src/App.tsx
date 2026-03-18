@@ -45,6 +45,25 @@ export default function App() {
   const todayEntry = getTodayEntry()
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const queryScreen = params.get("screen")
+    const queryName = params.get("name")
+
+    if (queryName && queryName.trim().length > 0) {
+      createProfile(queryName.trim())
+    }
+
+    if (queryScreen === "dashboard") {
+      setCurrentScreen("dashboard")
+    }
+
+    if (queryScreen || queryName) {
+      const nextUrl = window.location.pathname
+      window.history.replaceState({}, "", nextUrl)
+    }
+  }, [createProfile])
+
+  useEffect(() => {
     async function loadRealData() {
       const data = await getTodayMood()
       if (data) {

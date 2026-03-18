@@ -1,14 +1,19 @@
 :root {
-    --background: #f7f4ed;
-    --foreground: #26404d;
-    --card: #fbf9f3;
-    --primary: #4f8a6e;
-    --primary-foreground: #f8f6f0;
-    --secondary: #74879e;
-    --muted: #e7efe9;
-    --muted-foreground: #61717b;
-    --border: #d6e2d8;
-    --radius: 12px;
+    --bg-1: #f5f1e8;
+    --bg-2: #e8f0ec;
+    --text: #1f2f35;
+    --text-soft: #53666f;
+    --card: rgba(255, 255, 255, 0.84);
+    --border: rgba(104, 128, 122, 0.24);
+    --primary: #246f63;
+    --primary-hover: #1f5f55;
+    --danger: #b4232d;
+    --danger-hover: #8f1a23;
+    --success-bg: #e6f4ee;
+    --success-text: #22543d;
+    --error-bg: #fde8ea;
+    --error-text: #7a1f2a;
+    --radius: 14px;
 }
 
 * {
@@ -18,9 +23,9 @@
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
-    background: var(--background);
-    color: var(--foreground);
+    font-family: "Nunito Sans", "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+    background: radial-gradient(circle at 18% 8%, #c9e0d5 0, transparent 35%), linear-gradient(145deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
 }
 
 .landing {
@@ -49,7 +54,7 @@ body {
     height: 256px;
     top: -80px;
     right: -80px;
-    background: rgba(79, 138, 110, 0.08);
+    background: rgba(36, 111, 99, 0.17);
 }
 
 .shape-b {
@@ -57,7 +62,7 @@ body {
     height: 384px;
     bottom: -120px;
     left: -120px;
-    background: rgba(116, 135, 158, 0.08);
+    background: rgba(57, 97, 137, 0.12);
 }
 
 .shape-c {
@@ -66,7 +71,7 @@ body {
     top: 30%;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(79, 138, 110, 0.16);
+    background: rgba(255, 255, 255, 0.28);
 }
 
 .card {
@@ -77,6 +82,16 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    background: var(--card);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 18px 44px rgba(34, 52, 58, 0.17);
+}
+
+.auth-card {
+    max-width: 560px;
 }
 
 .brand {
@@ -84,80 +99,34 @@ body {
 }
 
 .logo-box {
-    width: 64px;
-    height: 64px;
+    width: 70px;
+    height: 70px;
     margin: 0 auto 14px;
     display: grid;
     place-items: center;
-    background: rgba(79, 138, 110, 0.15);
-    border-radius: 16px;
+    background: rgba(36, 111, 99, 0.12);
+    border-radius: 18px;
+    border: 1px solid rgba(36, 111, 99, 0.2);
 }
 
 .logo-wave {
     font-size: 36px;
     line-height: 1;
-    color: var(--primary);
+    color: #1f6f63;
     transform: translateY(-2px);
 }
 
 .brand h1 {
     margin: 0 0 8px;
-    font-size: 2rem;
+    font-size: 2.05rem;
+    letter-spacing: 0.01em;
 }
 
 .brand p {
     margin: 0;
-    font-size: 1.1rem;
-    color: var(--muted-foreground);
-    line-height: 1.55;
-}
-
-.privacy-button {
-    width: 100%;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: inherit;
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: border-color 0.25s ease, transform 0.2s ease;
-}
-
-.privacy-button:hover {
-    border-color: rgba(79, 138, 110, 0.4);
-}
-
-.privacy-shield {
-    color: var(--primary);
-}
-
-.privacy-text {
-    flex: 1;
-    text-align: left;
-    font-weight: 600;
-}
-
-.privacy-eye {
-    color: var(--muted-foreground);
-    font-size: 0.85rem;
-}
-
-.privacy-panel {
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    background: var(--muted);
-    color: #355243;
-}
-
-.privacy-panel ul {
-    margin: 0;
-    padding-left: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    font-size: 1.04rem;
+    color: var(--text-soft);
+    line-height: 1.45;
 }
 
 .hidden {
@@ -167,18 +136,46 @@ body {
 .action-area {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
-#new-user {
-    display: flex;
-    flex-direction: column;
+.auth-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
 }
 
-label {
+.switch-button {
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--text-soft);
+    border-radius: var(--radius);
+    padding: 12px 14px;
     font-size: 0.95rem;
-    color: var(--muted-foreground);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.switch-button.active {
+    background: #dcebe8;
+    color: #17453f;
+    border-color: rgba(36, 111, 99, 0.38);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-form.hidden {
+    display: none;
+}
+
+label {
+    font-size: 0.9rem;
+    color: var(--text-soft);
     font-weight: 600;
 }
 
@@ -186,9 +183,9 @@ input {
     width: 100%;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--card);
+    background: rgba(255, 255, 255, 0.83);
     padding: 14px;
-    color: var(--foreground);
+    color: var(--text);
     font-size: 1rem;
     outline: none;
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
@@ -196,7 +193,7 @@ input {
 
 input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 138, 110, 0.2);
+    box-shadow: 0 0 0 3px rgba(36, 111, 99, 0.2);
 }
 
 .primary-button {
@@ -207,16 +204,16 @@ input:focus {
     border-radius: var(--radius);
     padding: 14px 16px;
     background: var(--primary);
-    color: var(--primary-foreground);
+    color: #eff8f6;
     font-weight: 700;
     font-size: 1rem;
     text-decoration: none;
     cursor: pointer;
-    transition: filter 0.2s ease, transform 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .primary-button:hover {
-    filter: brightness(0.95);
+    background: var(--primary-hover);
 }
 
 .primary-button:active {
@@ -228,32 +225,77 @@ input:focus {
     cursor: not-allowed;
 }
 
-.welcome-box {
-    border: 1px solid rgba(79, 138, 110, 0.3);
-    background: rgba(79, 138, 110, 0.1);
+.text-link {
+    border: 0;
+    background: transparent;
+    color: #1f5f9b;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 2px 0;
+    width: fit-content;
+}
+
+.status-message {
     border-radius: var(--radius);
-    padding: 14px;
+    padding: 10px 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.status-message.success {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.status-message.error {
+    background: var(--error-bg);
+    color: var(--error-text);
+}
+
+.help-now-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    background: var(--danger);
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.02rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 14px 18px;
+    border: 2px solid rgba(122, 31, 42, 0.35);
+    box-shadow: 0 8px 18px rgba(122, 31, 42, 0.23);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.help-now-button:hover {
+    background: var(--danger-hover);
+}
+
+.help-now-button:active {
+    transform: scale(0.985);
+}
+
+.sos-card {
+    max-width: 480px;
     text-align: center;
 }
 
-.welcome-subtitle {
-    margin: 0;
-    color: var(--muted-foreground);
-}
-
-.welcome-alias {
-    margin: 4px 0 0;
-    font-size: 1.2rem;
-    font-weight: 700;
+.back-link {
+    margin: 0 auto;
 }
 
 .footer-note {
     margin: 8px auto 0;
-    max-width: 380px;
+    max-width: 420px;
     text-align: center;
-    font-size: 0.8rem;
-    line-height: 1.6;
-    color: rgba(97, 113, 123, 0.7);
+    font-size: 0.79rem;
+    line-height: 1.55;
+    color: rgba(47, 62, 73, 0.75);
 }
 
 @media (max-width: 640px) {
@@ -266,6 +308,16 @@ input:focus {
     }
 
     .brand p {
-        font-size: 1rem;
+        font-size: 0.98rem;
+    }
+
+    .card {
+        padding: 22px 18px;
+        border-radius: 18px;
+    }
+
+    .help-now-button {
+        font-size: 0.95rem;
+        padding: 12px 14px;
     }
 }

@@ -98,15 +98,6 @@ export function useUserProfile() {
         parsed.lastVisit = new Date().toISOString()
         setProfile(parsed)
         localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(parsed))
-      } else {
-        // INJECT HARDCODED USER
-        const dummyUser: UserProfile = {
-          alias: "Alex",
-          createdAt: new Date().toISOString(),
-          lastVisit: new Date().toISOString(),
-        }
-        setProfile(dummyUser)
-        localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(dummyUser))
       }
     } catch {
       // silently fail
