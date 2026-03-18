@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SafeHarbor</title>
+    <title>SafeHarbor Login</title>
     <link rel="stylesheet" href="~/css/landing.css" />
 </head>
 <body>
@@ -18,44 +18,49 @@
             <div class="shape shape-c"></div>
         </div>
 
-        <section class="card">
+        <section class="card auth-card">
             <div class="brand">
                 <div class="logo-box">
                     <span class="logo-wave">~</span>
                 </div>
                 <h1>SafeHarbor</h1>
-                <p>Your anonymous mental health companion. No judgment, no account required.</p>
+                <p>Sign in securely to continue your support journey.</p>
             </div>
 
-            <button id="privacy-toggle" class="privacy-button" type="button" aria-expanded="false">
-                <span class="privacy-shield">[]</span>
-                <span class="privacy-text">Our Privacy Promise</span>
-                <span id="privacy-icon" class="privacy-eye">Show</span>
-            </button>
-
-            <section id="privacy-panel" class="privacy-panel hidden">
-                <ul>
-                    <li>All data stays on your device, always.</li>
-                    <li>No accounts, no emails, no tracking.</li>
-                    <li>Clear your data anytime from your browser.</li>
-                </ul>
-            </section>
-
             <section class="action-area">
-                <div id="returning-user" class="hidden">
-                    <div class="welcome-box">
-                        <p class="welcome-subtitle">Welcome back,</p>
-                        <p id="welcome-alias" class="welcome-alias"></p>
-                    </div>
-                    <a class="primary-button" href="/dashboard">Continue to Dashboard</a>
+                <div class="auth-switch">
+                    <button id="show-login" class="switch-button active" type="button">Sign In</button>
+                    <button id="show-create" class="switch-button" type="button">Create Account</button>
                 </div>
 
-                <div id="new-user">
-                    <label for="alias-input">Pick a nickname (only stored on your device)</label>
-                    <input id="alias-input" type="text" placeholder="e.g. Peaceful Panda" maxlength="24" autocomplete="off" />
-                    <button id="start-button" class="primary-button" type="button" disabled>Begin Your Journey</button>
-                </div>
+                <section id="auth-status" class="status-message hidden" role="status" aria-live="polite"></section>
+
+                <form id="login-form" class="auth-form">
+                    <label for="login-email">Email</label>
+                    <input id="login-email" name="email" type="email" maxlength="200" autocomplete="email" required />
+
+                    <label for="login-password">Password</label>
+                    <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+
+                    <button id="login-submit" class="primary-button" type="submit">Sign In</button>
+                    <button id="go-create-inline" class="text-link" type="button">Need an account? Create one</button>
+                </form>
+
+                <form id="create-form" class="auth-form hidden">
+                    <label for="create-full-name">Full Name</label>
+                    <input id="create-full-name" name="fullName" type="text" maxlength="120" autocomplete="name" required />
+
+                    <label for="create-email">Email</label>
+                    <input id="create-email" name="email" type="email" maxlength="200" autocomplete="email" required />
+
+                    <label for="create-password">Create Password</label>
+                    <input id="create-password" name="password" type="password" autocomplete="new-password" required />
+
+                    <button id="create-submit" class="primary-button" type="submit">Create Account</button>
+                </form>
             </section>
+
+            <a class="help-now-button" href="/sos">Get Help Now</a>
 
             <p class="footer-note">
                 SafeHarbor is not a crisis service. If you are in danger, use emergency services immediately.

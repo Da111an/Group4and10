@@ -15,4 +15,10 @@ public class HomeController : Controller
     {
         return View();
     }
+
+    [HttpGet("/sos")]
+    public IActionResult Sos()
+    {
+        return View();
+    }
 }
