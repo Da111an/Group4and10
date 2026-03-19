@@ -8,7 +8,6 @@ import {
   Sparkles,
   ChevronRight,
   Clock,
-  LogOut,
 } from "lucide-react"
 import {
   Area,
@@ -25,7 +24,6 @@ interface DashboardScreenProps {
   entries: MoodEntry[]
   todayEntry: MoodEntry | { mood: number; sleep: number } | undefined
   onNavigate: (screen: string) => void
-  onLogout: () => void
 }
 
 const moodLabels = ["", "Struggling", "Low", "Okay", "Good", "Thriving"]
@@ -44,19 +42,11 @@ function getMoodIcon(mood: number) {
   return <Smile className="h-5 w-5" />
 }
 
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 12) return "Good morning"
-  if (hour < 17) return "Good afternoon"
-  return "Good evening"
-}
-
 export function DashboardScreen({
-  alias,
+  alias: _alias,
   entries,
   todayEntry,
   onNavigate,
-  onLogout,
 }: DashboardScreenProps) {
   // Get last 7 entries and reverse them so they go from oldest to newest (left to right)
   const recentEntries = entries.slice(0, 7).reverse()
@@ -85,21 +75,6 @@ export function DashboardScreen({
 
   return (
     <div className="flex flex-col gap-5 px-5 pb-28 pt-6" role="main">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{getGreeting()},</p>
-          <h1 className="text-2xl font-bold text-foreground">{alias}</h1>
-        </div>
-        <button
-          onClick={onLogout}
-          className="safe-harbor-transition inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-          aria-label="Log out"
-        >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          Log out
-        </button>
-      </div>
-
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => onNavigate("mood")}

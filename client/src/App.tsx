@@ -4,6 +4,7 @@ import { LandingScreen } from "@/components/screens/landing-screen"
 import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
 import { getTodayMood } from "@/api/mood"
+import { AppHeader } from "@/components/app-header"
 
 const DashboardScreen = lazy(() =>
   import("@/components/screens/dashboard-screen").then((m) => ({ default: m.DashboardScreen }))
@@ -24,6 +25,7 @@ export default function App() {
     useMoodEntries()
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing")
+  const [landingMode, setLandingMode] = useState<"login" | "register">("login")
   const [crisisOpen, setCrisisOpen] = useState(false)
   const [dbEntry, setDbEntry] = useState<{ id: string; date: string; mood: number; sleep: number; emotions: string[] } | null>(null)
 
@@ -55,8 +57,19 @@ export default function App() {
 
   const handleLogout = useCallback(async () => {
     await logout()
+    setLandingMode("login")
     setCurrentScreen("landing")
   }, [logout])
+
+  const handleGoToLogin = useCallback(() => {
+    setLandingMode("login")
+    setCurrentScreen("landing")
+  }, [])
+
+  const handleGoToRegister = useCallback(() => {
+    setLandingMode("register")
+    setCurrentScreen("landing")
+  }, [])
 
   const todayEntry = getTodayEntry()
 
@@ -88,37 +101,47 @@ export default function App() {
   }
 
   if (currentScreen === "landing") {
-    return (
-      <>
-        <LandingScreen
-          onLogin={handleLogin}
-          onRegister={handleRegister}
-          onCrisis={() => setCrisisOpen(true)}
-        />
-        <CrisisOverlay
-          isOpen={crisisOpen}
-          onClose={() => setCrisisOpen(false)}
-        />
-      </>
-    )
-  }
+  return (
+    <div className="mx-auto min-h-dvh max-w-lg">
+      <LandingScreen
+        mode={landingMode}
+        onModeChange={setLandingMode}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onCrisis={() => setCrisisOpen(true)}
+      />
+
+      <CrisisOverlay
+        isOpen={crisisOpen}
+        onClose={() => setCrisisOpen(false)}
+      />
+    </div>
+  )
+}
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
-      <Suspense
-        fallback={
-          <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
-          </div>
-        }
-      >
+  <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+    <AppHeader
+      isLoggedIn={true}
+      name={profile?.alias ?? "Friend"}
+      onLoginClick={handleGoToLogin}
+      onRegisterClick={handleGoToRegister}
+      onLogoutClick={() => void handleLogout()}
+    />
+
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+        </div>
+      }
+    >
       {currentScreen === "dashboard" && (
         <DashboardScreen
           alias={profile?.alias ?? "Friend"}
           entries={entries}
           todayEntry={dbEntry || todayEntry}
           onNavigate={handleNavigate}
-          onLogout={() => void handleLogout()}
         />
       )}
 
@@ -133,18 +156,18 @@ export default function App() {
       {currentScreen === "resources" && (
         <ResourceScreen onBack={() => setCurrentScreen("dashboard")} />
       )}
-      </Suspense>
+    </Suspense>
 
-      <FluidNav
-        currentScreen={currentScreen}
-        onNavigate={handleNavigate}
-        onCrisis={() => setCrisisOpen(true)}
-      />
+    <FluidNav
+      currentScreen={currentScreen}
+      onNavigate={handleNavigate}
+      onCrisis={() => setCrisisOpen(true)}
+    />
 
-      <CrisisOverlay
-        isOpen={crisisOpen}
-        onClose={() => setCrisisOpen(false)}
-      />
-    </div>
-  )
+    <CrisisOverlay
+      isOpen={crisisOpen}
+      onClose={() => setCrisisOpen(false)}
+    />
+  </div>
+ )
 }
