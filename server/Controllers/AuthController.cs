@@ -11,6 +11,7 @@ namespace Server.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    private const string SessionAliasKey = "SafeHarbor.Alias";
     private readonly AppDbContext _dbContext;
 
     public AuthController(AppDbContext dbContext)
@@ -56,6 +57,7 @@ public class AuthController : ControllerBase
 
         _dbContext.UserAccounts.Add(user);
         await _dbContext.SaveChangesAsync();
+        HttpContext.Session.SetString(SessionAliasKey, user.FullName);
 
         return Ok(new { message = "Account created successfully.", email = user.Email, fullName = user.FullName });
     }
@@ -75,8 +77,41 @@ public class AuthController : ControllerBase
 
         user.LastLoginUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
+        HttpContext.Session.SetString(SessionAliasKey, user.FullName);
 
         return Ok(new { message = "Sign in successful.", email = user.Email, fullName = user.FullName });
+    }
+
+    [HttpPost("guest-login")]
+    public IActionResult GuestLogin([FromBody] GuestLoginRequest request)
+    {
+        var alias = (request.Alias ?? string.Empty).Trim();
+        if (alias.Length == 0 || alias.Length > 24)
+        {
+            return BadRequest(new { message = "Please enter a valid nickname." });
+        }
+
+        HttpContext.Session.SetString(SessionAliasKey, alias);
+        return Ok(new { message = "Sign in successful.", alias });
+    }
+
+    [HttpGet("session")]
+    public IActionResult Session()
+    {
+        var alias = HttpContext.Session.GetString(SessionAliasKey);
+        if (string.IsNullOrWhiteSpace(alias))
+        {
+            return Ok(new { authenticated = false });
+        }
+
+        return Ok(new { authenticated = true, alias });
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear();
+        return Ok(new { message = "Logged out." });
     }
 
     private static string NormalizeUsername(string username) =>
@@ -99,4 +134,5 @@ public class AuthController : ControllerBase
     }
 
     public record AuthRequest(string? Password, string? Email, string? FullName);
+    public record GuestLoginRequest(string? Alias);
 }

@@ -1,6 +1,6 @@
 /**
  * API client for mood entries.
- * Proxies to backend at /api (configured in vite.config.ts).
+ * Uses same-host backend at /api by default.
  */
 
 const API_BASE = import.meta.env.VITE_API_URL ?? ''
