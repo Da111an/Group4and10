@@ -18,7 +18,7 @@ const ResourceScreen = lazy(() =>
 type Screen = "landing" | "dashboard" | "mood" | "resources"
 
 export default function App() {
-  const { profile, isLoaded: profileLoaded, createProfile, isReturningUser } =
+  const { profile, isLoaded: profileLoaded, login, register, logout, isReturningUser } =
     useUserProfile()
   const { entries, isLoaded: entriesLoaded, addEntry, getTodayEntry } =
     useMoodEntries()
@@ -31,37 +31,40 @@ export default function App() {
     setCurrentScreen(screen as Screen)
   }, [])
 
-  const handleContinue = useCallback(() => {
-    setCurrentScreen("dashboard")
-  }, [])
-
-  const handleCreateProfile = useCallback(
-    (alias: string) => {
-      createProfile(alias)
+  const handleLogin = useCallback(
+    async (email: string, password: string) => {
+      const result = await login(email, password)
+      if (result.success) {
+        setCurrentScreen("dashboard")
+      }
+      return result
     },
-    [createProfile]
+    [login]
   )
+
+  const handleRegister = useCallback(
+    async (fullName: string, email: string, password: string) => {
+      const result = await register(fullName, email, password)
+      if (result.success) {
+        setCurrentScreen("dashboard")
+      }
+      return result
+    },
+    [register]
+  )
+
+  const handleLogout = useCallback(async () => {
+    await logout()
+    setCurrentScreen("landing")
+  }, [logout])
 
   const todayEntry = getTodayEntry()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const queryScreen = params.get("screen")
-    const queryName = params.get("name")
-
-    if (queryName && queryName.trim().length > 0) {
-      createProfile(queryName.trim())
-    }
-
-    if (queryScreen === "dashboard") {
+    if (isReturningUser) {
       setCurrentScreen("dashboard")
     }
-
-    if (queryScreen || queryName) {
-      const nextUrl = window.location.pathname
-      window.history.replaceState({}, "", nextUrl)
-    }
-  }, [createProfile])
+  }, [isReturningUser])
 
   useEffect(() => {
     async function loadRealData() {
@@ -88,10 +91,9 @@ export default function App() {
     return (
       <>
         <LandingScreen
-          isReturningUser={isReturningUser}
-          userAlias={profile?.alias}
-          onContinue={handleContinue}
-          onCreateProfile={handleCreateProfile}
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          onCrisis={() => setCrisisOpen(true)}
         />
         <CrisisOverlay
           isOpen={crisisOpen}
@@ -116,6 +118,7 @@ export default function App() {
           entries={entries}
           todayEntry={dbEntry || todayEntry}
           onNavigate={handleNavigate}
+          onLogout={() => void handleLogout()}
         />
       )}
 

@@ -1,34 +1,43 @@
 import { useState } from "react"
 import {
   Shield,
-  Heart,
-  Eye,
-  EyeOff,
-  ArrowRight,
   Waves,
+  Heart,
 } from "lucide-react"
 
 interface LandingScreenProps {
-  isReturningUser: boolean
-  userAlias?: string
-  onContinue: () => void
-  onCreateProfile: (alias: string) => void
+  onLogin: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
+  onRegister: (fullName: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
+  onCrisis: () => void
 }
 
 export function LandingScreen({
-  isReturningUser,
-  userAlias,
-  onContinue,
-  onCreateProfile,
+  onLogin,
+  onRegister,
+  onCrisis,
 }: LandingScreenProps) {
-  const [alias, setAlias] = useState("")
-  const [showPrivacy, setShowPrivacy] = useState(false)
+  const [mode, setMode] = useState<"login" | "register">("login")
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [message, setMessage] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleStart = () => {
-    if (!isReturningUser && alias.trim()) {
-      onCreateProfile(alias.trim())
+  const handleSubmit = async () => {
+    if (submitting) {
+      return
     }
-    onContinue()
+
+    setSubmitting(true)
+    setMessage("")
+    const result = mode === "login"
+      ? await onLogin(email, password)
+      : await onRegister(fullName, email, password)
+    setSubmitting(false)
+
+    if (!result.success && result.message) {
+      setMessage(result.message)
+    }
   }
 
   return (
@@ -48,97 +57,111 @@ export function LandingScreen({
             SafeHarbor
           </h1>
           <p className="text-center text-lg leading-relaxed text-muted-foreground">
-            Your anonymous mental health companion. No judgment, no account required.
+            Sign in securely to continue your support journey.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowPrivacy(!showPrivacy)}
-          className="safe-harbor-transition flex w-full items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-left hover:border-primary/30"
-          aria-expanded={showPrivacy}
-          aria-controls="privacy-panel"
-          aria-label={showPrivacy ? "Hide privacy promise" : "Show privacy promise"}
-        >
-          <Shield className="h-5 w-5 shrink-0 text-primary" />
-          <span className="flex-1 text-sm font-medium text-foreground">
-            Our Privacy Promise
-          </span>
-          {showPrivacy ? (
-            <EyeOff className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          )}
-        </button>
-
-        {showPrivacy && (
-          <div id="privacy-panel" className="w-full rounded-xl bg-accent/50 px-5 py-4" role="region" aria-label="Privacy promise details">
-            <ul className="flex flex-col gap-3 text-sm leading-relaxed text-accent-foreground">
-              <li className="flex items-start gap-2">
-                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>All data stays on your device, always.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>No accounts, no emails, no tracking.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>Clear your data anytime from your browser.</span>
-              </li>
-            </ul>
-          </div>
-        )}
+        <div className="flex w-full flex-col gap-3 rounded-xl border border-border bg-card p-2">
+          <button
+            onClick={() => setMode("login")}
+            className={`safe-harbor-transition rounded-lg px-4 py-2 text-sm font-medium ${mode === "login" ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
+            type="button"
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => setMode("register")}
+            className={`safe-harbor-transition rounded-lg px-4 py-2 text-sm font-medium ${mode === "register" ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
+            type="button"
+          >
+            Create Account
+          </button>
+        </div>
 
         <div className="flex w-full flex-col gap-4">
-          {isReturningUser ? (
-            <div className="flex flex-col gap-4">
-              <div className="rounded-xl border border-primary/20 bg-primary/5 px-5 py-4 text-center">
-                <p className="text-sm text-muted-foreground">Welcome back,</p>
-                <p className="mt-1 text-lg font-semibold text-foreground">
-                  {userAlias}
-                </p>
-              </div>
-              <button
-                onClick={handleStart}
-                className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98]"
-                aria-label="Continue to Dashboard"
-              >
-                Continue to Dashboard
-                <ArrowRight className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="alias-input"
-                  className="text-sm font-medium text-muted-foreground"
-                >
-                  Pick a nickname (only stored on your device)
-                </label>
-                <input
-                  id="alias-input"
-                  type="text"
-                  value={alias}
-                  onChange={(e) => setAlias(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && alias.trim() && handleStart()}
-                  placeholder="e.g. Peaceful Panda"
-                  className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary"
-                  maxLength={24}
-                  autoComplete="off"
-                />
-              </div>
-              <button
-                onClick={handleStart}
-                disabled={!alias.trim()}
-                className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Begin your journey with your chosen nickname"
-              >
-                <Heart className="h-5 w-5" aria-hidden="true" />
-                Begin Your Journey
-              </button>
+          {mode === "register" && (
+            <div className="flex flex-col gap-2">
+              <label htmlFor="full-name-input" className="text-sm font-medium text-muted-foreground">
+                Full Name
+              </label>
+              <input
+                id="full-name-input"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary"
+                maxLength={120}
+                autoComplete="name"
+              />
             </div>
           )}
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email-input" className="text-sm font-medium text-muted-foreground">
+              Email
+            </label>
+            <input
+              id="email-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary"
+              maxLength={200}
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="password-input" className="text-sm font-medium text-muted-foreground">
+              Password
+            </label>
+            <input
+              id="password-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  void handleSubmit()
+                }
+              }}
+              className="safe-harbor-transition w-full rounded-xl border border-input bg-card px-4 py-3.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-primary/20 focus-visible:ring-2 focus-visible:ring-primary"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+            />
+          </div>
+
+          {message && (
+            <p className="text-sm text-destructive" role="status" aria-live="polite">
+              {message}
+            </p>
+          )}
+
+          <button
+            onClick={() => void handleSubmit()}
+            disabled={submitting}
+            className="safe-harbor-transition flex items-center justify-center rounded-xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label={mode === "login" ? "Sign in" : "Create account"}
+          >
+            {mode === "login" ? "Sign In" : "Create Account"}
+          </button>
+        </div>
+
+        <div className="w-full rounded-xl bg-accent/50 px-5 py-4" role="region" aria-label="Privacy statement">
+          <p className="mb-3 text-sm font-semibold text-accent-foreground">Privacy Statement</p>
+          <ul className="flex flex-col gap-3 text-sm leading-relaxed text-accent-foreground">
+            <li className="flex items-start gap-2">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>Your data stays on this app and is not sold.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>We only use account details to let you sign in securely.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>You can log out anytime from the top-right dashboard button.</span>
+            </li>
+          </ul>
         </div>
 
         <p className="mt-4 max-w-xs text-center text-xs leading-relaxed text-muted-foreground/60">
@@ -146,6 +169,15 @@ export function LandingScreen({
           the Crisis Help button available on every screen.
         </p>
       </div>
+
+      <button
+        onClick={onCrisis}
+        className="safe-harbor-transition fixed right-4 top-4 z-30 inline-flex items-center gap-3 rounded-2xl border-2 border-destructive-foreground/20 bg-destructive px-8 py-5 text-xl font-extrabold tracking-wide text-destructive-foreground shadow-2xl ring-4 ring-destructive/25 hover:bg-destructive/90 active:scale-[0.97]"
+        aria-label="Crisis help - 988 lifeline, Crisis Text Line, emergency services"
+      >
+        <Heart className="h-7 w-7" aria-hidden="true" />
+        SOS
+      </button>
     </main>
   )
 }

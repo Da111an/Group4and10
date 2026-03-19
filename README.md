@@ -9,24 +9,15 @@ Full-stack application: **React** (Vite + TypeScript) | **.NET 10 Web API**
 
 ## Getting Started
 
-### 1. Run the API
-
 ```bash
-cd server
+cd client
+npm install
+npm run build
+cd ../server
 dotnet run
 ```
 
-The API starts at `http://localhost:5027`. OpenAPI docs are available at `/openapi/v1.json` in development.
-
-### 2. Run the React frontend
-
-```bash
-cd client
-npm install   # first time only
-npm run dev
-```
-
-The frontend starts at `http://localhost:5173`. API calls to `/api/*` are automatically proxied to the backend.
+Open `http://localhost:5027` for the app (frontend + API on one host).
 
 ## Project Structure
 
