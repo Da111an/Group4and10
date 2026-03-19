@@ -6,17 +6,20 @@ import {
 } from "lucide-react"
 
 interface LandingScreenProps {
+  mode: "login" | "register"
+  onModeChange: (mode: "login" | "register") => void
   onLogin: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   onRegister: (fullName: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
   onCrisis: () => void
 }
 
 export function LandingScreen({
+  mode,
+  onModeChange,
   onLogin,
   onRegister,
   onCrisis,
 }: LandingScreenProps) {
-  const [mode, setMode] = useState<"login" | "register">("login")
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -63,14 +66,14 @@ export function LandingScreen({
 
         <div className="flex w-full flex-col gap-3 rounded-xl border border-border bg-card p-2">
           <button
-            onClick={() => setMode("login")}
+            onClick={() => onModeChange("login")}
             className={`safe-harbor-transition rounded-lg px-4 py-2 text-sm font-medium ${mode === "login" ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
             type="button"
           >
             Sign In
           </button>
           <button
-            onClick={() => setMode("register")}
+            onClick={() => onModeChange("register")}
             className={`safe-harbor-transition rounded-lg px-4 py-2 text-sm font-medium ${mode === "register" ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
             type="button"
           >
