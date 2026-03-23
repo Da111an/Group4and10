@@ -164,6 +164,10 @@ export function LandingScreen({
               <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>You can log out anytime from the top-right dashboard button.</span>
             </li>
+            <li className="flex items-start gap-2">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>All information regarding your mood, sleep, and history is entirely confidential.</span>
+            </li>
           </ul>
         </div>
 
