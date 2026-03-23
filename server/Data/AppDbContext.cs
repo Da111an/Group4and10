@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Resource> Resources { get; set; }
     public DbSet<Testimonial> Testimonials { get; set; }
     public DbSet<UserAccount> UserAccounts { get; set; }
+    public DbSet<UserDailyCheckIn> UserDailyCheckIns { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +62,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.Email).HasMaxLength(200);
             entity.Property(x => x.NormalizedEmail).HasMaxLength(200);
             entity.Property(x => x.PasswordHash).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<UserDailyCheckIn>(entity =>
+        {
+            entity.HasIndex(x => new { x.UserAccountId, x.DateKey }).IsUnique();
+            entity.Property(x => x.DateKey).HasMaxLength(10);
+            entity.Property(x => x.EmotionsJson).HasMaxLength(4000);
         });
     }
 }

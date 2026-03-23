@@ -26,6 +26,7 @@ export async function saveMoodEntry(entry: MoodEntryPayload): Promise<{ success:
     const res = await fetch(`${base}/api/mood`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(entry),
     })
     if (!res.ok) throw new Error('Save failed')
@@ -39,7 +40,9 @@ export async function saveMoodEntry(entry: MoodEntryPayload): Promise<{ success:
 export async function getTodayMood(): Promise<MoodEntryResponse | null> {
   try {
     const base = API_BASE || ''
-    const res = await fetch(`${base}/api/mood/today`)
+    const res = await fetch(`${base}/api/mood/today`, {
+      credentials: 'include',
+    })
     if (!res.ok) return null
     const data = await res.json()
     return data

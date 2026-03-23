@@ -41,6 +41,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
     EnsureUserAccountEmailSchema(db);
+    EnsureUserDailyCheckInSchema(db);
     EnsureDefaultAuthAccount(db);
 }
 
@@ -81,6 +82,26 @@ static void EnsureUserAccountEmailSchema(AppDbContext db)
         CREATE UNIQUE INDEX IF NOT EXISTS IX_UserAccounts_NormalizedEmail
         ON UserAccounts (NormalizedEmail)
         WHERE NormalizedEmail <> '';
+    """);
+}
+
+static void EnsureUserDailyCheckInSchema(AppDbContext db)
+{
+    TryExecuteSql(db, """
+        CREATE TABLE IF NOT EXISTS UserDailyCheckIns (
+            Id INTEGER NOT NULL CONSTRAINT PK_UserDailyCheckIns PRIMARY KEY AUTOINCREMENT,
+            UserAccountId INTEGER NOT NULL,
+            DateKey TEXT NOT NULL,
+            Mood INTEGER NOT NULL,
+            Sleep REAL NOT NULL,
+            EmotionsJson TEXT NOT NULL DEFAULT '[]',
+            UpdatedUtc TEXT NOT NULL
+        );
+    """);
+
+    TryExecuteSql(db, """
+        CREATE UNIQUE INDEX IF NOT EXISTS IX_UserDailyCheckIns_UserAccountId_DateKey
+        ON UserDailyCheckIns (UserAccountId, DateKey);
     """);
 }
 
