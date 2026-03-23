@@ -43,7 +43,7 @@ function getMoodIcon(mood: number) {
 }
 
 export function DashboardScreen({
-  alias: _alias,
+  alias,
   entries,
   todayEntry,
   onNavigate,
@@ -79,7 +79,7 @@ export function DashboardScreen({
         <button
           onClick={() => onNavigate("mood")}
           className="safe-harbor-transition col-span-2 flex items-center gap-4 rounded-2xl border border-border bg-card p-5 text-left hover:border-primary/30 active:scale-[0.99]"
-          aria-label={todayEntry ? `Today's check-in: You're feeling ${moodLabels[todayEntry.mood]?.toLowerCase()}. Tap to log mood.` : "Daily check-in. Tap to log how you're feeling today."}
+          aria-label={todayEntry ? `Today's check-in, ${alias}: You're feeling ${moodLabels[todayEntry.mood]?.toLowerCase()}. Tap to log mood.` : `Daily check-in for ${alias}. Tap to log how you're feeling today.`}
         >
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${

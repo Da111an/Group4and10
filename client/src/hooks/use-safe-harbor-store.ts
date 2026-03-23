@@ -37,25 +37,27 @@ export function useMoodEntries() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.MOOD_ENTRIES)
+      let toSet: MoodEntry[] = []
       if (stored) {
         const parsed = JSON.parse(stored) as MoodEntry[]
         if (Array.isArray(parsed)) {
           if (isLegacyDemoSeed(parsed)) {
             localStorage.removeItem(STORAGE_KEYS.MOOD_ENTRIES)
-            setEntries([])
           } else {
-            setEntries(parsed)
+            toSet = parsed
           }
-        } else {
-          setEntries([])
         }
-      } else {
-        setEntries([])
       }
+      queueMicrotask(() => {
+        setEntries(toSet)
+        setIsLoaded(true)
+      })
     } catch {
-      // silently fail
+      queueMicrotask(() => {
+        setEntries([])
+        setIsLoaded(true)
+      })
     }
-    setIsLoaded(true)
   }, [])
 
   const addEntry = useCallback((entry: Omit<MoodEntry, "id">) => {

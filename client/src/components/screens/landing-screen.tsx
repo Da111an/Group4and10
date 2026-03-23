@@ -3,6 +3,7 @@ import {
   Shield,
   Waves,
   Heart,
+  BookOpen,
 } from "lucide-react"
 
 interface LandingScreenProps {
@@ -11,6 +12,7 @@ interface LandingScreenProps {
   onLogin: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   onRegister: (fullName: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
   onCrisis: () => void
+  onViewResources?: () => void
 }
 
 export function LandingScreen({
@@ -19,6 +21,7 @@ export function LandingScreen({
   onLogin,
   onRegister,
   onCrisis,
+  onViewResources,
 }: LandingScreenProps) {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
@@ -170,6 +173,17 @@ export function LandingScreen({
             </li>
           </ul>
         </div>
+
+        {onViewResources && (
+          <button
+            onClick={onViewResources}
+            className="safe-harbor-transition flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
+            type="button"
+          >
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
+            View support resources
+          </button>
+        )}
 
         <p className="mt-4 max-w-xs text-center text-xs leading-relaxed text-muted-foreground/60">
           SafeHarbor is not a crisis service. If you are in danger, please use
