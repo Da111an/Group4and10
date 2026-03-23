@@ -10,11 +10,12 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import type { MoodEntry } from "@/hooks/use-safe-harbor-store"
-import { saveMoodEntry } from "@/api/mood"
+import { deleteTodayMood, saveMoodEntry } from "@/api/mood"
 
 interface MoodLoggerScreenProps {
   todayEntry: MoodEntry | { mood: number; sleep: number; emotions?: string[] } | undefined
   onSave: (entry: Omit<MoodEntry, "id">) => void
+  onDeleteToday: () => void
   onBack: () => void
 }
 
@@ -44,12 +45,14 @@ const EMOTION_TAGS = [
 export function MoodLoggerScreen({
   todayEntry,
   onSave,
+  onDeleteToday,
   onBack,
 }: MoodLoggerScreenProps) {
   const [mood, setMood] = useState(todayEntry?.mood ?? 0)
   const [sleep, setSleep] = useState(todayEntry?.sleep ?? 7)
   const [emotions, setEmotions] = useState<string[]>(todayEntry?.emotions ?? [])
   const [saved, setSaved] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [step, setStep] = useState<"mood" | "sleep" | "emotions" | "done">(
     todayEntry ? "done" : "mood"
   )
@@ -84,6 +87,30 @@ export function MoodLoggerScreen({
       setStep("done")
     }
   }, [mood, sleep, emotions, onSave])
+
+  const handleEditToday = useCallback(() => {
+    setSaved(false)
+    setStep("mood")
+  }, [])
+
+  const handleDeleteAndRedo = useCallback(async () => {
+    setIsDeleting(true)
+    const result = await deleteTodayMood()
+    setIsDeleting(false)
+
+    if (!result.success) {
+      window.alert("Could not delete today's check-in. Please try again.")
+      return
+    }
+
+    const resetSleep = 7
+    setMood(0)
+    setSleep(resetSleep)
+    setEmotions([])
+    setSaved(false)
+    setStep("mood")
+    onDeleteToday()
+  }, [onDeleteToday])
 
   if (step === "done" || saved) {
     const displayEntry = todayEntry || { mood, sleep, emotions }
@@ -155,6 +182,22 @@ export function MoodLoggerScreen({
               </div>
             </div>
           )}
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={handleEditToday}
+            className="safe-harbor-transition flex-1 rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"
+          >
+            Edit today&apos;s check-in
+          </button>
+          <button
+            onClick={() => void handleDeleteAndRedo()}
+            disabled={isDeleting}
+            className="safe-harbor-transition flex-1 rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60"
+          >
+            {isDeleting ? "Deleting..." : "Delete & redo"}
+          </button>
         </div>
       </div>
     )

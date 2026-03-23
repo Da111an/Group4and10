@@ -219,7 +219,7 @@ export function DashboardScreen({
         </button>
 
         <button
-          onClick={() => onNavigate("mood")}
+          onClick={() => onNavigate("history")}
           className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98]"
           aria-label={`View mood history. ${entries.length} ${entries.length === 1 ? "entry" : "entries"} logged`}
         >

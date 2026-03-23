@@ -4,7 +4,7 @@ import type { MoodEntry } from "@/hooks/use-safe-harbor-store"
 import { LandingScreen } from "@/components/screens/landing-screen"
 import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
-import { getTodayMood } from "@/api/mood"
+import { getMoodHistory } from "@/api/mood"
 import { AppHeader } from "@/components/app-header"
 
 const DashboardScreen = lazy(() =>
@@ -13,16 +13,19 @@ const DashboardScreen = lazy(() =>
 const MoodLoggerScreen = lazy(() =>
   import("@/components/screens/mood-logger-screen").then((m) => ({ default: m.MoodLoggerScreen }))
 )
+const HistoryScreen = lazy(() =>
+  import("@/components/screens/history-screen").then((m) => ({ default: m.HistoryScreen }))
+)
 const ResourceScreen = lazy(() =>
   import("@/components/screens/resource-screen").then((m) => ({ default: m.ResourceScreen }))
 )
 
-type Screen = "landing" | "dashboard" | "mood" | "resources"
+type Screen = "landing" | "dashboard" | "mood" | "history" | "resources"
 
 export default function App() {
   const { profile, isLoaded: profileLoaded, login, register, logout, isReturningUser } =
     useUserProfile()
-  const { entries, isLoaded: entriesLoaded, addEntry } =
+  const { entries, isLoaded: entriesLoaded, addEntry, setEntriesFromServer, removeEntryByDate } =
     useMoodEntries()
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing")
@@ -94,6 +97,12 @@ export default function App() {
     [addEntry]
   )
 
+  const handleDeleteTodayEntry = useCallback(() => {
+    const todayKey = new Date().toISOString().split("T")[0]
+    setDbEntry(null)
+    removeEntryByDate(todayKey)
+  }, [removeEntryByDate])
+
   useEffect(() => {
     if (isReturningUser) {
       setCurrentScreen("dashboard")
@@ -102,13 +111,26 @@ export default function App() {
 
   useEffect(() => {
     if (!profile) {
+      setEntriesFromServer([])
+      setDbEntry(null)
       setTodayStatusLoaded(true)
       return
     }
 
     async function loadRealData() {
       setTodayStatusLoaded(false)
-      const data = await getTodayMood()
+      const history = await getMoodHistory()
+      const mappedHistory: MoodEntry[] = history.map((entry) => ({
+        id: entry.id,
+        date: entry.date,
+        mood: entry.mood,
+        sleep: entry.sleep,
+        emotions: entry.emotions,
+      }))
+      setEntriesFromServer(mappedHistory)
+
+      const todayKey = new Date().toISOString().split("T")[0]
+      const data = history.find((entry) => entry.date === todayKey)
       if (data) {
         setDbEntry({
           id: data.id,
@@ -123,7 +145,7 @@ export default function App() {
       setTodayStatusLoaded(true)
     }
     loadRealData()
-  }, [currentScreen, profile])
+  }, [currentScreen, profile, setEntriesFromServer])
 
   useEffect(() => {
     if (!profile || currentScreen !== "dashboard") {
@@ -204,6 +226,14 @@ export default function App() {
         <MoodLoggerScreen
           todayEntry={dbEntry || undefined}
           onSave={handleSaveEntry}
+          onDeleteToday={handleDeleteTodayEntry}
+          onBack={() => setCurrentScreen("dashboard")}
+        />
+      )}
+
+      {currentScreen === "history" && (
+        <HistoryScreen
+          entries={entries}
           onBack={() => setCurrentScreen("dashboard")}
         />
       )}
