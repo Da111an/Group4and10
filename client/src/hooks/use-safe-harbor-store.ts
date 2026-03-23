@@ -58,20 +58,33 @@ export function useMoodEntries() {
     setIsLoaded(true)
   }, [])
 
-  const addEntry = useCallback(
-    (entry: Omit<MoodEntry, "id">) => {
-      const newEntry: MoodEntry = {
-        ...entry,
-        id: crypto.randomUUID(),
-      }
-      const withoutSameDate = entries.filter((existing) => existing.date !== newEntry.date)
-      const updated = [newEntry, ...withoutSameDate]
-      setEntries(updated)
+  const addEntry = useCallback((entry: Omit<MoodEntry, "id">) => {
+    const newEntry: MoodEntry = {
+      ...entry,
+      id: crypto.randomUUID(),
+    }
+    setEntries((prev) => {
+      const withoutSameDate = prev.filter((existing) => existing.date !== newEntry.date)
+      const updated = [newEntry, ...withoutSameDate].sort((a, b) => b.date.localeCompare(a.date))
       localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(updated))
-      return newEntry
-    },
-    [entries]
-  )
+      return updated
+    })
+    return newEntry
+  }, [])
+
+  const setEntriesFromServer = useCallback((serverEntries: MoodEntry[]) => {
+    const normalized = [...serverEntries].sort((a, b) => b.date.localeCompare(a.date))
+    setEntries(normalized)
+    localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(normalized))
+  }, [])
+
+  const removeEntryByDate = useCallback((date: string) => {
+    setEntries((prev) => {
+      const updated = prev.filter((entry) => entry.date !== date)
+      localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(updated))
+      return updated
+    })
+  }, [])
 
   const getRecentEntries = useCallback(
     (count: number = 7) => {
@@ -85,7 +98,7 @@ export function useMoodEntries() {
     return entries.find((e) => e.date === today)
   }, [entries])
 
-  return { entries, isLoaded, addEntry, getRecentEntries, getTodayEntry }
+  return { entries, isLoaded, addEntry, setEntriesFromServer, removeEntryByDate, getRecentEntries, getTodayEntry }
 }
 
 export function useUserProfile() {

@@ -51,3 +51,33 @@ export async function getTodayMood(): Promise<MoodEntryResponse | null> {
     return null
   }
 }
+
+export async function getMoodHistory(): Promise<MoodEntryResponse[]> {
+  try {
+    const base = API_BASE || ''
+    const res = await fetch(`${base}/api/mood/history`, {
+      credentials: 'include',
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  } catch (err) {
+    console.error('API history fetch error:', err)
+    return []
+  }
+}
+
+export async function deleteTodayMood(): Promise<{ success: boolean }> {
+  try {
+    const base = API_BASE || ''
+    const res = await fetch(`${base}/api/mood/today`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    if (!res.ok) return { success: false }
+    return { success: true }
+  } catch (err) {
+    console.error('API delete error:', err)
+    return { success: false }
+  }
+}

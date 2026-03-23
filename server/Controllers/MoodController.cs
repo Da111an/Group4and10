@@ -120,6 +120,70 @@ public class MoodController : ControllerBase
             emotions
         });
     }
+
+    [HttpGet("history")]
+    public async Task<IActionResult> GetHistory()
+    {
+        var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
+        if (userAccountId is null)
+        {
+            return Ok(Array.Empty<object>());
+        }
+
+        var entries = await _dbContext.UserDailyCheckIns
+            .AsNoTracking()
+            .Where(x => x.UserAccountId == userAccountId.Value)
+            .OrderByDescending(x => x.DateKey)
+            .ToListAsync();
+
+        var result = entries.Select(entry =>
+        {
+            string[] emotions;
+            try
+            {
+                emotions = JsonSerializer.Deserialize<string[]>(entry.EmotionsJson) ?? [];
+            }
+            catch
+            {
+                emotions = [];
+            }
+
+            return new
+            {
+                id = entry.Id.ToString(),
+                date = entry.DateKey,
+                mood = entry.Mood,
+                sleep = entry.Sleep,
+                emotions
+            };
+        });
+
+        return Ok(result);
+    }
+
+    [HttpDelete("today")]
+    public async Task<IActionResult> DeleteToday()
+    {
+        var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
+        if (userAccountId is null)
+        {
+            return Unauthorized(new { message = "You must be signed in to delete today's check-in." });
+        }
+
+        var todayKey = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var entry = await _dbContext.UserDailyCheckIns
+            .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == todayKey);
+
+        if (entry is null)
+        {
+            return Ok(new { success = true, deleted = false });
+        }
+
+        _dbContext.UserDailyCheckIns.Remove(entry);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new { success = true, deleted = true });
+    }
 }
 
 public class MoodEntryRequest
