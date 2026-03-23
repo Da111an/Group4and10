@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Text.Json;
 using Server.Data;
 using Server.Models;
@@ -33,10 +34,10 @@ public class MoodController : ControllerBase
         }
 
         var dateKey = string.IsNullOrWhiteSpace(request.Date)
-            ? DateTime.UtcNow.ToString("yyyy-MM-dd")
+            ? DateTime.Now.ToString("yyyy-MM-dd")
             : request.Date.Trim();
 
-        if (dateKey.Length != 10)
+        if (!DateOnly.TryParseExact(dateKey, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
         {
             return BadRequest(new { message = "Date must use yyyy-MM-dd format." });
         }
@@ -83,7 +84,7 @@ public class MoodController : ControllerBase
     }
 
     [HttpGet("today")]
-    public async Task<IActionResult> GetToday()
+    public async Task<IActionResult> GetToday([FromQuery] string? date)
     {
         var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
         if (userAccountId is null)
@@ -91,7 +92,11 @@ public class MoodController : ControllerBase
             return Ok(null as object);
         }
 
-        var todayKey = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        if (!TryResolveDateKey(date, out var todayKey))
+        {
+            return BadRequest(new { message = "Date must use yyyy-MM-dd format." });
+        }
+
         var entry = await _dbContext.UserDailyCheckIns
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == todayKey);
@@ -162,7 +167,7 @@ public class MoodController : ControllerBase
     }
 
     [HttpDelete("today")]
-    public async Task<IActionResult> DeleteToday()
+    public async Task<IActionResult> DeleteToday([FromQuery] string? date)
     {
         var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
         if (userAccountId is null)
@@ -170,7 +175,11 @@ public class MoodController : ControllerBase
             return Unauthorized(new { message = "You must be signed in to delete today's check-in." });
         }
 
-        var todayKey = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        if (!TryResolveDateKey(date, out var todayKey))
+        {
+            return BadRequest(new { message = "Date must use yyyy-MM-dd format." });
+        }
+
         var entry = await _dbContext.UserDailyCheckIns
             .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == todayKey);
 
@@ -183,6 +192,25 @@ public class MoodController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         return Ok(new { success = true, deleted = true });
+    }
+
+    private static bool TryResolveDateKey(string? dateKey, out string resolvedDateKey)
+    {
+        if (string.IsNullOrWhiteSpace(dateKey))
+        {
+            resolvedDateKey = DateTime.Now.ToString("yyyy-MM-dd");
+            return true;
+        }
+
+        var trimmed = dateKey.Trim();
+        if (!DateOnly.TryParseExact(trimmed, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+        {
+            resolvedDateKey = string.Empty;
+            return false;
+        }
+
+        resolvedDateKey = trimmed;
+        return true;
     }
 }
 

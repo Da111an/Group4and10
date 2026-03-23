@@ -6,6 +6,7 @@ import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
 import { getMoodHistory } from "@/api/mood"
 import { AppHeader } from "@/components/app-header"
+import { getLocalDateKey } from "@/lib/date"
 
 const DashboardScreen = lazy(() =>
   import("@/components/screens/dashboard-screen").then((m) => ({ default: m.DashboardScreen }))
@@ -21,6 +22,11 @@ const ResourceScreen = lazy(() =>
 )
 
 type Screen = "landing" | "dashboard" | "mood" | "history" | "resources"
+const CHECKIN_PROMPT_DISMISS_PREFIX = "safeharbor_checkin_prompt_dismissed"
+
+function getCheckInDismissStorageKey(alias: string, dateKey: string): string {
+  return `${CHECKIN_PROMPT_DISMISS_PREFIX}:${encodeURIComponent(alias)}:${dateKey}`
+}
 
 export default function App() {
   const { profile, isLoaded: profileLoaded, login, register, logout, isReturningUser } =
@@ -34,7 +40,6 @@ export default function App() {
   const [dbEntry, setDbEntry] = useState<{ id: string; date: string; mood: number; sleep: number; emotions: string[] } | null>(null)
   const [todayStatusLoaded, setTodayStatusLoaded] = useState(false)
   const [checkInPromptOpen, setCheckInPromptOpen] = useState(false)
-  const [checkInPromptDismissed, setCheckInPromptDismissed] = useState(false)
 
   const handleNavigate = useCallback((screen: string) => {
     setCurrentScreen(screen as Screen)
@@ -67,7 +72,6 @@ export default function App() {
     setLandingMode("login")
     setCurrentScreen("landing")
     setCheckInPromptOpen(false)
-    setCheckInPromptDismissed(false)
     setTodayStatusLoaded(false)
     setDbEntry(null)
   }, [logout])
@@ -98,7 +102,7 @@ export default function App() {
   )
 
   const handleDeleteTodayEntry = useCallback(() => {
-    const todayKey = new Date().toISOString().split("T")[0]
+    const todayKey = getLocalDateKey()
     setDbEntry(null)
     removeEntryByDate(todayKey)
   }, [removeEntryByDate])
@@ -129,7 +133,7 @@ export default function App() {
       }))
       setEntriesFromServer(mappedHistory)
 
-      const todayKey = new Date().toISOString().split("T")[0]
+      const todayKey = getLocalDateKey()
       const data = history.find((entry) => entry.date === todayKey)
       if (data) {
         setDbEntry({
@@ -158,13 +162,17 @@ export default function App() {
     }
 
     const hasCheckedInToday = dbEntry !== null
-    if (!hasCheckedInToday && !checkInPromptDismissed) {
+    const todayKey = getLocalDateKey()
+    const dismissKey = getCheckInDismissStorageKey(profile.alias, todayKey)
+    const dismissedForToday = localStorage.getItem(dismissKey) === "1"
+
+    if (!hasCheckedInToday && !dismissedForToday) {
       setCheckInPromptOpen(true)
       return
     }
 
     setCheckInPromptOpen(false)
-  }, [profile, currentScreen, todayStatusLoaded, dbEntry, checkInPromptDismissed])
+  }, [profile, currentScreen, todayStatusLoaded, dbEntry])
 
   if (!profileLoaded || !entriesLoaded) {
     return (
@@ -261,7 +269,9 @@ export default function App() {
           <div className="mt-5 flex gap-3">
             <button
               onClick={() => {
-                setCheckInPromptDismissed(true)
+                const todayKey = getLocalDateKey()
+                const dismissKey = getCheckInDismissStorageKey(profile?.alias ?? "anonymous", todayKey)
+                localStorage.setItem(dismissKey, "1")
                 setCheckInPromptOpen(false)
               }}
               className="safe-harbor-transition flex-1 rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"

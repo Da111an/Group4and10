@@ -37,10 +37,10 @@ export async function saveMoodEntry(entry: MoodEntryPayload): Promise<{ success:
   }
 }
 
-export async function getTodayMood(): Promise<MoodEntryResponse | null> {
+export async function getTodayMood(dateKey: string): Promise<MoodEntryResponse | null> {
   try {
     const base = API_BASE || ''
-    const res = await fetch(`${base}/api/mood/today`, {
+    const res = await fetch(`${base}/api/mood/today?date=${encodeURIComponent(dateKey)}`, {
       credentials: 'include',
     })
     if (!res.ok) return null
@@ -67,10 +67,10 @@ export async function getMoodHistory(): Promise<MoodEntryResponse[]> {
   }
 }
 
-export async function deleteTodayMood(): Promise<{ success: boolean }> {
+export async function deleteTodayMood(dateKey: string): Promise<{ success: boolean }> {
   try {
     const base = API_BASE || ''
-    const res = await fetch(`${base}/api/mood/today`, {
+    const res = await fetch(`${base}/api/mood/today?date=${encodeURIComponent(dateKey)}`, {
       method: 'DELETE',
       credentials: 'include',
     })

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
+import { getLocalDateKey } from "@/lib/date"
 
 export interface MoodEntry {
   id: string
@@ -94,7 +95,7 @@ export function useMoodEntries() {
   )
 
   const getTodayEntry = useCallback(() => {
-    const today = new Date().toISOString().split("T")[0]
+    const today = getLocalDateKey()
     return entries.find((e) => e.date === today)
   }, [entries])
 

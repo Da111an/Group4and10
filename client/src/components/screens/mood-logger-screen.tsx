@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import type { MoodEntry } from "@/hooks/use-safe-harbor-store"
 import { deleteTodayMood, saveMoodEntry } from "@/api/mood"
+import { getLocalDateKey } from "@/lib/date"
 
 interface MoodLoggerScreenProps {
   todayEntry: MoodEntry | { mood: number; sleep: number; emotions?: string[] } | undefined
@@ -69,7 +70,7 @@ export function MoodLoggerScreen({
 
   const handleSave = useCallback(async () => {
     const entry: Omit<MoodEntry, "id"> = {
-      date: new Date().toISOString().split("T")[0],
+      date: getLocalDateKey(),
       mood,
       sleep,
       emotions,
@@ -95,7 +96,7 @@ export function MoodLoggerScreen({
 
   const handleDeleteAndRedo = useCallback(async () => {
     setIsDeleting(true)
-    const result = await deleteTodayMood()
+    const result = await deleteTodayMood(getLocalDateKey())
     setIsDeleting(false)
 
     if (!result.success) {
