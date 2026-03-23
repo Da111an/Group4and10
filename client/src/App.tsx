@@ -105,15 +105,17 @@ export default function App() {
 
   useEffect(() => {
     if (isReturningUser) {
-      setCurrentScreen("dashboard")
+      queueMicrotask(() => setCurrentScreen("dashboard"))
     }
   }, [isReturningUser])
 
   useEffect(() => {
     if (!profile) {
-      setEntriesFromServer([])
-      setDbEntry(null)
-      setTodayStatusLoaded(true)
+      queueMicrotask(() => {
+        setEntriesFromServer([])
+        setDbEntry(null)
+        setTodayStatusLoaded(true)
+      })
       return
     }
 
@@ -149,7 +151,7 @@ export default function App() {
 
   useEffect(() => {
     if (!profile || currentScreen !== "dashboard") {
-      setCheckInPromptOpen(false)
+      queueMicrotask(() => setCheckInPromptOpen(false))
       return
     }
 
@@ -159,11 +161,11 @@ export default function App() {
 
     const hasCheckedInToday = dbEntry !== null
     if (!hasCheckedInToday && !checkInPromptDismissed) {
-      setCheckInPromptOpen(true)
+      queueMicrotask(() => setCheckInPromptOpen(true))
       return
     }
 
-    setCheckInPromptOpen(false)
+    queueMicrotask(() => setCheckInPromptOpen(false))
   }, [profile, currentScreen, todayStatusLoaded, dbEntry, checkInPromptDismissed])
 
   if (!profileLoaded || !entriesLoaded) {
@@ -178,28 +180,61 @@ export default function App() {
   }
 
   if (currentScreen === "landing") {
-  return (
-    <div className="mx-auto min-h-dvh max-w-lg">
-      <LandingScreen
-        mode={landingMode}
-        onModeChange={setLandingMode}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        onCrisis={() => setCrisisOpen(true)}
-      />
+    return (
+      <div className="mx-auto min-h-dvh max-w-lg">
+        <LandingScreen
+          mode={landingMode}
+          onModeChange={setLandingMode}
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          onCrisis={() => setCrisisOpen(true)}
+          onViewResources={() => setCurrentScreen("resources")}
+        />
 
-      <CrisisOverlay
-        isOpen={crisisOpen}
-        onClose={() => setCrisisOpen(false)}
-      />
-    </div>
-  )
-}
+        <CrisisOverlay
+          isOpen={crisisOpen}
+          onClose={() => setCrisisOpen(false)}
+        />
+      </div>
+    )
+  }
+
+  // Unauthenticated resources view: allow guest access to crisis/help resources
+  if (currentScreen === "resources" && !profile) {
+    return (
+      <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+        <AppHeader
+          isLoggedIn={false}
+          onLoginClick={handleGoToLogin}
+          onRegisterClick={handleGoToRegister}
+          onLogoutClick={() => {}}
+        />
+
+        <Suspense
+          fallback={
+            <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true" />
+            </div>
+          }
+        >
+          <ResourceScreen
+            onBack={() => setCurrentScreen("landing")}
+            backLabel="Sign in"
+          />
+        </Suspense>
+
+        <CrisisOverlay
+          isOpen={crisisOpen}
+          onClose={() => setCrisisOpen(false)}
+        />
+      </div>
+    )
+  }
 
   return (
   <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
     <AppHeader
-      isLoggedIn={true}
+      isLoggedIn={!!profile}
       name={profile?.alias ?? "Friend"}
       onLoginClick={handleGoToLogin}
       onRegisterClick={handleGoToRegister}
@@ -239,7 +274,10 @@ export default function App() {
       )}
 
       {currentScreen === "resources" && (
-        <ResourceScreen onBack={() => setCurrentScreen("dashboard")} />
+        <ResourceScreen
+          onBack={() => setCurrentScreen("dashboard")}
+          backLabel="Dashboard"
+        />
       )}
     </Suspense>
 

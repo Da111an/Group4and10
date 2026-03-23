@@ -15,6 +15,7 @@ import {
 
 interface ResourceScreenProps {
   onBack: () => void
+  backLabel?: string
 }
 
 interface Resource {
@@ -104,7 +105,7 @@ const RESOURCES: Resource[] = [
 
 type FilterType = "all" | "free" | "24_7"
 
-export function ResourceScreen({ onBack }: ResourceScreenProps) {
+export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScreenProps) {
   const [filter, setFilter] = useState<FilterType>("all")
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -128,10 +129,10 @@ export function ResourceScreen({ onBack }: ResourceScreenProps) {
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
-        aria-label="Back to dashboard"
+        aria-label={`Back to ${backLabel.toLowerCase()}`}
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Dashboard
+        {backLabel}
       </button>
 
       <div>
