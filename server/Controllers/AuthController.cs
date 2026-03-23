@@ -12,6 +12,7 @@ namespace Server.Controllers;
 public class AuthController : ControllerBase
 {
     private const string SessionAliasKey = "SafeHarbor.Alias";
+    private const string SessionUserIdKey = "SafeHarbor.UserId";
     private readonly AppDbContext _dbContext;
 
     public AuthController(AppDbContext dbContext)
@@ -58,6 +59,7 @@ public class AuthController : ControllerBase
         _dbContext.UserAccounts.Add(user);
         await _dbContext.SaveChangesAsync();
         HttpContext.Session.SetString(SessionAliasKey, user.FullName);
+        HttpContext.Session.SetInt32(SessionUserIdKey, user.Id);
 
         return Ok(new { message = "Account created successfully.", email = user.Email, fullName = user.FullName });
     }
@@ -78,6 +80,7 @@ public class AuthController : ControllerBase
         user.LastLoginUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
         HttpContext.Session.SetString(SessionAliasKey, user.FullName);
+        HttpContext.Session.SetInt32(SessionUserIdKey, user.Id);
 
         return Ok(new { message = "Sign in successful.", email = user.Email, fullName = user.FullName });
     }
@@ -92,6 +95,7 @@ public class AuthController : ControllerBase
         }
 
         HttpContext.Session.SetString(SessionAliasKey, alias);
+        HttpContext.Session.Remove(SessionUserIdKey);
         return Ok(new { message = "Sign in successful.", alias });
     }
 

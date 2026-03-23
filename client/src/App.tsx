@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from "react"
 import { useMoodEntries, useUserProfile } from "@/hooks/use-safe-harbor-store"
+import type { MoodEntry } from "@/hooks/use-safe-harbor-store"
 import { LandingScreen } from "@/components/screens/landing-screen"
 import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
@@ -21,13 +22,16 @@ type Screen = "landing" | "dashboard" | "mood" | "resources"
 export default function App() {
   const { profile, isLoaded: profileLoaded, login, register, logout, isReturningUser } =
     useUserProfile()
-  const { entries, isLoaded: entriesLoaded, addEntry, getTodayEntry } =
+  const { entries, isLoaded: entriesLoaded, addEntry } =
     useMoodEntries()
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing")
   const [landingMode, setLandingMode] = useState<"login" | "register">("login")
   const [crisisOpen, setCrisisOpen] = useState(false)
   const [dbEntry, setDbEntry] = useState<{ id: string; date: string; mood: number; sleep: number; emotions: string[] } | null>(null)
+  const [todayStatusLoaded, setTodayStatusLoaded] = useState(false)
+  const [checkInPromptOpen, setCheckInPromptOpen] = useState(false)
+  const [checkInPromptDismissed, setCheckInPromptDismissed] = useState(false)
 
   const handleNavigate = useCallback((screen: string) => {
     setCurrentScreen(screen as Screen)
@@ -59,6 +63,10 @@ export default function App() {
     await logout()
     setLandingMode("login")
     setCurrentScreen("landing")
+    setCheckInPromptOpen(false)
+    setCheckInPromptDismissed(false)
+    setTodayStatusLoaded(false)
+    setDbEntry(null)
   }, [logout])
 
   const handleGoToLogin = useCallback(() => {
@@ -71,7 +79,20 @@ export default function App() {
     setCurrentScreen("landing")
   }, [])
 
-  const todayEntry = getTodayEntry()
+  const handleSaveEntry = useCallback(
+    (entry: Omit<MoodEntry, "id">) => {
+      addEntry(entry)
+      setDbEntry({
+        id: crypto.randomUUID(),
+        date: entry.date,
+        mood: entry.mood,
+        sleep: entry.sleep,
+        emotions: entry.emotions,
+      })
+      setCheckInPromptOpen(false)
+    },
+    [addEntry]
+  )
 
   useEffect(() => {
     if (isReturningUser) {
@@ -80,14 +101,48 @@ export default function App() {
   }, [isReturningUser])
 
   useEffect(() => {
+    if (!profile) {
+      setTodayStatusLoaded(true)
+      return
+    }
+
     async function loadRealData() {
+      setTodayStatusLoaded(false)
       const data = await getTodayMood()
       if (data) {
-        setDbEntry(data)
+        setDbEntry({
+          id: data.id,
+          date: data.date,
+          mood: data.mood,
+          sleep: data.sleep,
+          emotions: data.emotions,
+        })
+      } else {
+        setDbEntry(null)
       }
+      setTodayStatusLoaded(true)
     }
     loadRealData()
-  }, [currentScreen])
+  }, [currentScreen, profile])
+
+  useEffect(() => {
+    if (!profile || currentScreen !== "dashboard") {
+      setCheckInPromptOpen(false)
+      return
+    }
+
+    if (!todayStatusLoaded) {
+      return
+    }
+
+    const hasCheckedInToday = dbEntry !== null
+    if (!hasCheckedInToday && !checkInPromptDismissed) {
+      setCheckInPromptOpen(true)
+      return
+    }
+
+    setCheckInPromptOpen(false)
+  }, [profile, currentScreen, todayStatusLoaded, dbEntry, checkInPromptDismissed])
 
   if (!profileLoaded || !entriesLoaded) {
     return (
@@ -140,15 +195,15 @@ export default function App() {
         <DashboardScreen
           alias={profile?.alias ?? "Friend"}
           entries={entries}
-          todayEntry={dbEntry || todayEntry}
+          todayEntry={dbEntry || undefined}
           onNavigate={handleNavigate}
         />
       )}
 
       {currentScreen === "mood" && (
         <MoodLoggerScreen
-          todayEntry={dbEntry || todayEntry}
-          onSave={addEntry}
+          todayEntry={dbEntry || undefined}
+          onSave={handleSaveEntry}
           onBack={() => setCurrentScreen("dashboard")}
         />
       )}
@@ -163,6 +218,39 @@ export default function App() {
       onNavigate={handleNavigate}
       onCrisis={() => setCrisisOpen(true)}
     />
+
+    {checkInPromptOpen && (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-6" role="dialog" aria-modal="true" aria-labelledby="check-in-title">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-lg">
+          <h2 id="check-in-title" className="text-lg font-semibold text-foreground">
+            Do you want to check in?
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You have not submitted today&apos;s mood and sleep ratings yet.
+          </p>
+          <div className="mt-5 flex gap-3">
+            <button
+              onClick={() => {
+                setCheckInPromptDismissed(true)
+                setCheckInPromptOpen(false)
+              }}
+              className="safe-harbor-transition flex-1 rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"
+            >
+              Not now
+            </button>
+            <button
+              onClick={() => {
+                setCheckInPromptOpen(false)
+                setCurrentScreen("mood")
+              }}
+              className="safe-harbor-transition flex-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Check in now
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     <CrisisOverlay
       isOpen={crisisOpen}

@@ -1,4 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using Server.Data;
+using Server.Models;
 
 namespace Server.Controllers;
 
@@ -6,17 +10,115 @@ namespace Server.Controllers;
 [Route("api/[controller]")]
 public class MoodController : ControllerBase
 {
-    [HttpPost]
-    public IActionResult Save([FromBody] MoodEntryRequest request)
+    private const string SessionUserIdKey = "SafeHarbor.UserId";
+    private readonly AppDbContext _dbContext;
+
+    public MoodController(AppDbContext dbContext)
     {
-        if (request == null) return BadRequest();
-        return Ok(new { success = true });
+        _dbContext = dbContext;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Save([FromBody] MoodEntryRequest request)
+    {
+        if (request is null)
+        {
+            return BadRequest(new { message = "Missing request body." });
+        }
+
+        var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
+        if (userAccountId is null)
+        {
+            return Unauthorized(new { message = "You must be signed in to save a check-in." });
+        }
+
+        var dateKey = string.IsNullOrWhiteSpace(request.Date)
+            ? DateTime.UtcNow.ToString("yyyy-MM-dd")
+            : request.Date.Trim();
+
+        if (dateKey.Length != 10)
+        {
+            return BadRequest(new { message = "Date must use yyyy-MM-dd format." });
+        }
+
+        if (request.Mood < 1 || request.Mood > 5)
+        {
+            return BadRequest(new { message = "Mood must be between 1 and 5." });
+        }
+
+        if (request.Sleep < 0 || request.Sleep > 24)
+        {
+            return BadRequest(new { message = "Sleep must be between 0 and 24 hours." });
+        }
+
+        var existing = await _dbContext.UserDailyCheckIns
+            .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == dateKey);
+
+        if (existing is null)
+        {
+            existing = new UserDailyCheckIn
+            {
+                UserAccountId = userAccountId.Value,
+                DateKey = dateKey
+            };
+            _dbContext.UserDailyCheckIns.Add(existing);
+        }
+
+        existing.Mood = request.Mood;
+        existing.Sleep = request.Sleep;
+        existing.EmotionsJson = JsonSerializer.Serialize(request.Emotions ?? []);
+        existing.UpdatedUtc = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new
+        {
+            success = true,
+            id = existing.Id.ToString(),
+            date = existing.DateKey,
+            mood = existing.Mood,
+            sleep = existing.Sleep,
+            emotions = request.Emotions ?? []
+        });
     }
 
     [HttpGet("today")]
-    public IActionResult GetToday()
+    public async Task<IActionResult> GetToday()
     {
-        return Ok(null as object);
+        var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
+        if (userAccountId is null)
+        {
+            return Ok(null as object);
+        }
+
+        var todayKey = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var entry = await _dbContext.UserDailyCheckIns
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == todayKey);
+
+        if (entry is null)
+        {
+            return Ok(null as object);
+        }
+
+        string[] emotions;
+        try
+        {
+            emotions = JsonSerializer.Deserialize<string[]>(entry.EmotionsJson) ?? [];
+        }
+        catch
+        {
+            emotions = [];
+        }
+
+        return Ok(new
+        {
+            id = entry.Id.ToString(),
+            date = entry.DateKey,
+            mood = entry.Mood,
+            sleep = entry.Sleep,
+            emotions
+        });
     }
 }
 
