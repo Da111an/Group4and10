@@ -24,20 +24,10 @@ const STORAGE_KEYS = {
   MOOD_ENTRIES: "safeharbor_mood_entries",
 }
 
-// --- NEW: Helper to generate 7 days of dummy data for chart validation ---
-const generateHardcodedEntries = (): MoodEntry[] => {
-  return Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - i) // 0 is today, 1 is yesterday, etc.
-    return {
-      id: crypto.randomUUID(),
-      date: d.toISOString().split("T")[0],
-      mood: Math.floor(Math.random() * 3) + 2, // Random mood between 2 and 4
-      sleep: Math.floor(Math.random() * 4) + 5, // Random sleep between 5 and 8
-      emotions: ["calm", "focused"],
-      note: "Hardcoded sprint validation entry",
-    }
-  })
+const LEGACY_DEMO_NOTE = "Hardcoded sprint validation entry"
+
+function isLegacyDemoSeed(entries: MoodEntry[]): boolean {
+  return entries.length > 0 && entries.every((entry) => entry.note === LEGACY_DEMO_NOTE)
 }
 
 export function useMoodEntries() {
@@ -47,13 +37,20 @@ export function useMoodEntries() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.MOOD_ENTRIES)
-      if (stored && JSON.parse(stored).length > 0) {
-        setEntries(JSON.parse(stored))
+      if (stored) {
+        const parsed = JSON.parse(stored) as MoodEntry[]
+        if (Array.isArray(parsed)) {
+          if (isLegacyDemoSeed(parsed)) {
+            localStorage.removeItem(STORAGE_KEYS.MOOD_ENTRIES)
+            setEntries([])
+          } else {
+            setEntries(parsed)
+          }
+        } else {
+          setEntries([])
+        }
       } else {
-        // INJECT HARDCODED DATA IF EMPTY
-        const dummyData = generateHardcodedEntries()
-        setEntries(dummyData)
-        localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(dummyData))
+        setEntries([])
       }
     } catch {
       // silently fail
@@ -61,19 +58,33 @@ export function useMoodEntries() {
     setIsLoaded(true)
   }, [])
 
-  const addEntry = useCallback(
-    (entry: Omit<MoodEntry, "id">) => {
-      const newEntry: MoodEntry = {
-        ...entry,
-        id: crypto.randomUUID(),
-      }
-      const updated = [newEntry, ...entries]
-      setEntries(updated)
+  const addEntry = useCallback((entry: Omit<MoodEntry, "id">) => {
+    const newEntry: MoodEntry = {
+      ...entry,
+      id: crypto.randomUUID(),
+    }
+    setEntries((prev) => {
+      const withoutSameDate = prev.filter((existing) => existing.date !== newEntry.date)
+      const updated = [newEntry, ...withoutSameDate].sort((a, b) => b.date.localeCompare(a.date))
       localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(updated))
-      return newEntry
-    },
-    [entries]
-  )
+      return updated
+    })
+    return newEntry
+  }, [])
+
+  const setEntriesFromServer = useCallback((serverEntries: MoodEntry[]) => {
+    const normalized = [...serverEntries].sort((a, b) => b.date.localeCompare(a.date))
+    setEntries(normalized)
+    localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(normalized))
+  }, [])
+
+  const removeEntryByDate = useCallback((date: string) => {
+    setEntries((prev) => {
+      const updated = prev.filter((entry) => entry.date !== date)
+      localStorage.setItem(STORAGE_KEYS.MOOD_ENTRIES, JSON.stringify(updated))
+      return updated
+    })
+  }, [])
 
   const getRecentEntries = useCallback(
     (count: number = 7) => {
@@ -87,7 +98,7 @@ export function useMoodEntries() {
     return entries.find((e) => e.date === today)
   }, [entries])
 
-  return { entries, isLoaded, addEntry, getRecentEntries, getTodayEntry }
+  return { entries, isLoaded, addEntry, setEntriesFromServer, removeEntryByDate, getRecentEntries, getTodayEntry }
 }
 
 export function useUserProfile() {
