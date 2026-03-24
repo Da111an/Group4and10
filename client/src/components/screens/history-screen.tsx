@@ -12,7 +12,7 @@ export function HistoryScreen({ entries, onBack }: HistoryScreenProps) {
   const sortedEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date))
 
   return (
-    <div className="flex flex-col gap-6 px-5 pb-28 pt-6">
+    <div className="flex flex-col gap-6 pb-28 pt-6 sm:pt-8 sm:pb-32 lg:pb-28">
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"

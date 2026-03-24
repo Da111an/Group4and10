@@ -125,7 +125,10 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
   })
 
   return (
-    <main className="flex flex-col gap-5 px-5 pb-28 pt-6" role="main">
+    <main
+      className="flex flex-col gap-5 pb-28 pt-6 sm:gap-6 sm:pt-8 sm:pb-32 lg:pb-28"
+      role="main"
+    >
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -184,7 +187,7 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
         ))}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3 xl:gap-5">
         {filtered.length > 0 ? (
           filtered.map((resource) => {
             const Icon = ICON_MAP[resource.iconKey as keyof typeof ICON_MAP] ?? Phone
@@ -249,7 +252,7 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
             )
           })
         ) : (
-          <div className="py-10 text-center text-sm text-muted-foreground">
+          <div className="col-span-full py-10 text-center text-sm text-muted-foreground">
             No resources found matching your search.
           </div>
         )}
