@@ -47,14 +47,14 @@ export function LandingScreen({
   }
 
   return (
-    <main id="main-content" className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
+    <main id="main-content" className="flex min-h-dvh flex-col items-center justify-center py-10 sm:py-12 lg:py-16">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/5" />
         <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-secondary/5" />
         <div className="absolute top-1/3 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-accent/30" />
       </div>
 
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8">
+      <div className="relative z-10 flex w-full max-w-md lg:max-w-lg flex-col items-center gap-6 sm:gap-8">
         <div className="flex flex-col items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10" aria-hidden="true">
             <Waves className="h-8 w-8 text-primary" />
@@ -193,7 +193,7 @@ export function LandingScreen({
 
       <button
         onClick={onCrisis}
-        className="safe-harbor-transition fixed right-4 top-4 z-30 inline-flex items-center gap-3 rounded-2xl border-2 border-destructive-foreground/20 bg-destructive px-8 py-5 text-xl font-extrabold tracking-wide text-destructive-foreground shadow-2xl ring-4 ring-destructive/25 hover:bg-destructive/90 active:scale-[0.97]"
+        className="safe-harbor-transition fixed right-4 top-4 z-30 inline-flex items-center gap-3 rounded-2xl border-2 border-destructive-foreground/20 bg-destructive px-6 py-4 text-lg font-extrabold tracking-wide text-destructive-foreground shadow-2xl ring-4 ring-destructive/25 hover:bg-destructive/90 active:scale-[0.97] sm:right-6 sm:top-6 sm:px-8 sm:py-5 sm:text-xl lg:right-8"
         aria-label="Crisis help - 988 lifeline, Crisis Text Line, emergency services"
       >
         <Heart className="h-7 w-7" aria-hidden="true" />

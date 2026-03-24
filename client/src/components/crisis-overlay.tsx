@@ -35,7 +35,7 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/60 px-3 pb-0 pt-4 backdrop-blur-sm sm:items-center sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -43,7 +43,7 @@ export function CrisisOverlay({ isOpen, onClose }: CrisisOverlayProps) {
       aria-describedby="crisis-dialog-desc"
     >
       <div
-        className="w-full max-w-lg animate-in slide-in-from-bottom-4 rounded-t-3xl bg-card px-6 pb-10 pt-6 shadow-2xl"
+        className="w-full max-w-lg animate-in slide-in-from-bottom-4 rounded-t-3xl bg-card px-6 pb-10 pt-6 shadow-2xl sm:max-w-xl sm:rounded-2xl sm:pb-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 lg:max-w-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-center justify-between">
