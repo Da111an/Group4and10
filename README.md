@@ -19,6 +19,19 @@ dotnet run
 
 Open `http://localhost:5027` for the app (frontend + API on one host).
 
+## Chatbot Setup
+
+The support chat widget lives in `client/src/components/chat-widget.tsx` and sends requests to `POST /api/chat`.
+
+Set the backend environment variables before running `dotnet run`:
+
+```powershell
+$env:OPENROUTER_API_KEY="your_openrouter_api_key_here"
+$env:OPENROUTER_MODEL="openai/gpt-4o-mini"
+```
+
+The API route is implemented in `server/Controllers/ChatController.cs`, and the frontend request helper is in `client/src/api/chat.ts`.
+
 ## Project Structure
 
 ```

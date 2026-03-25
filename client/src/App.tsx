@@ -7,6 +7,7 @@ import { CrisisOverlay } from "@/components/crisis-overlay"
 import { getMoodHistory } from "@/api/mood"
 import { AppHeader } from "@/components/app-header"
 import { appShellClassName } from "@/lib/layout"
+import { ChatWidget } from "@/components/chat-widget"
 
 const DashboardScreen = lazy(() =>
   import("@/components/screens/dashboard-screen").then((m) => ({ default: m.DashboardScreen }))
@@ -196,6 +197,7 @@ export default function App() {
           isOpen={crisisOpen}
           onClose={() => setCrisisOpen(false)}
         />
+        <ChatWidget />
       </div>
     )
   }
@@ -228,6 +230,7 @@ export default function App() {
           isOpen={crisisOpen}
           onClose={() => setCrisisOpen(false)}
         />
+        <ChatWidget />
       </div>
     )
   }
@@ -325,6 +328,7 @@ export default function App() {
       isOpen={crisisOpen}
       onClose={() => setCrisisOpen(false)}
     />
+    <ChatWidget />
   </div>
  )
 }
