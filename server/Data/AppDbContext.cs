@@ -14,6 +14,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Testimonial> Testimonials { get; set; }
     public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<UserDailyCheckIn> UserDailyCheckIns { get; set; }
+    public DbSet<Objective> Objectives { get; set; }
+    public DbSet<KeyResult> KeyResults { get; set; }
+    public DbSet<KeyResultHistory> KeyResultHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

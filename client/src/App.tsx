@@ -6,8 +6,6 @@ import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
 import { getMoodHistory } from "@/api/mood"
 import { AppHeader } from "@/components/app-header"
-import { appShellClassName } from "@/lib/layout"
-import { ChatWidget } from "@/components/chat-widget"
 
 const DashboardScreen = lazy(() =>
   import("@/components/screens/dashboard-screen").then((m) => ({ default: m.DashboardScreen }))
@@ -183,7 +181,7 @@ export default function App() {
 
   if (currentScreen === "landing") {
     return (
-      <div className={appShellClassName}>
+      <div className="mx-auto min-h-dvh max-w-lg">
         <LandingScreen
           mode={landingMode}
           onModeChange={setLandingMode}
@@ -197,7 +195,6 @@ export default function App() {
           isOpen={crisisOpen}
           onClose={() => setCrisisOpen(false)}
         />
-        <ChatWidget />
       </div>
     )
   }
@@ -205,7 +202,7 @@ export default function App() {
   // Unauthenticated resources view: allow guest access to crisis/help resources
   if (currentScreen === "resources" && !profile) {
     return (
-      <div className={appShellClassName} id="main-content">
+      <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
         <AppHeader
           isLoggedIn={false}
           onLoginClick={handleGoToLogin}
@@ -230,13 +227,12 @@ export default function App() {
           isOpen={crisisOpen}
           onClose={() => setCrisisOpen(false)}
         />
-        <ChatWidget />
       </div>
     )
   }
 
   return (
-  <div className={appShellClassName} id="main-content">
+  <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
     <AppHeader
       isLoggedIn={!!profile}
       name={profile?.alias ?? "Friend"}
@@ -293,7 +289,7 @@ export default function App() {
 
     {checkInPromptOpen && (
       <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-6" role="dialog" aria-modal="true" aria-labelledby="check-in-title">
-        <div className="w-full max-w-sm sm:max-w-md rounded-2xl border border-border bg-card p-5 shadow-lg">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-lg">
           <h2 id="check-in-title" className="text-lg font-semibold text-foreground">
             Do you want to check in?
           </h2>
@@ -328,7 +324,6 @@ export default function App() {
       isOpen={crisisOpen}
       onClose={() => setCrisisOpen(false)}
     />
-    <ChatWidget />
   </div>
  )
 }

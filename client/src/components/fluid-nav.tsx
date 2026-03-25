@@ -1,5 +1,4 @@
 import { LayoutDashboard, PenLine, BookOpen, Heart } from "lucide-react"
-import { fluidNavBarClassName } from "@/lib/layout"
 
 interface FluidNavProps {
   currentScreen: string
@@ -20,12 +19,10 @@ export function FluidNav({
 }: FluidNavProps) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-end justify-center px-4 pb-4 sm:px-6 lg:px-8"
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-end justify-center px-4 pb-4"
       aria-label="Main navigation"
     >
-      <div
-        className={`flex items-center justify-between rounded-2xl border border-border/60 bg-card/90 px-2 py-2 shadow-lg backdrop-blur-md ${fluidNavBarClassName}`}
-      >
+      <div className="flex w-full max-w-sm items-center justify-between rounded-2xl border border-border/60 bg-card/90 px-2 py-2 shadow-lg backdrop-blur-md">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           const isActive = currentScreen === item.key
