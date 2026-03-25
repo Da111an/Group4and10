@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Models
 {
-    // This model allows you to track progress over time for your charts
     public class KeyResultHistory
     {
         [Key]

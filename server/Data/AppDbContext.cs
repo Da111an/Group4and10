@@ -14,12 +14,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Testimonial> Testimonials { get; set; }
     public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<UserDailyCheckIn> UserDailyCheckIns { get; set; }
+    
+    // OKR Tracking Tables
     public DbSet<Objective> Objectives { get; set; }
     public DbSet<KeyResult> KeyResults { get; set; }
     public DbSet<KeyResultHistory> KeyResultHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Original Model Configurations
         modelBuilder.Entity<User>().HasKey(u => u.UserId);
 
         modelBuilder.Entity<Session>()
@@ -73,5 +76,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.DateKey).HasMaxLength(10);
             entity.Property(x => x.EmotionsJson).HasMaxLength(4000);
         });
+
+        // OKR Relationship Configurations
+        modelBuilder.Entity<Objective>()
+            .HasOne(o => o.UserAccount)
+            .WithMany()
+            .HasForeignKey(o => o.UserAccountId);
+
+        modelBuilder.Entity<KeyResult>()
+            .HasOne(k => k.Objective)
+            .WithMany(o => o.KeyResults)
+            .HasForeignKey(k => k.ObjectiveId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<KeyResultHistory>()
+            .HasOne(h => h.KeyResult)
+            .WithMany(k => k.HistoryLogs)
+            .HasForeignKey(h => h.KeyResultId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -4,6 +4,7 @@ namespace Server.Models;
 
 public class MoodEntry
 {
+    [Key]
     public int EntryId { get; set; }
 
     [Required]
