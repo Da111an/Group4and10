@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Server.Controllers;
@@ -21,6 +20,11 @@ public class ChatController : ControllerBase
         "i cant go on",
         "i have a plan"
     ];
+
+    private static readonly JsonSerializerOptions GeminiJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
@@ -53,41 +57,59 @@ public class ChatController : ControllerBase
             return Ok(new { reply = CrisisResponse });
         }
 
-        var apiKey = _configuration["OPENROUTER_API_KEY"];
+        var apiKey = ResolveGeminiApiKey();
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            _logger.LogWarning("OPENROUTER_API_KEY is not configured for /api/chat.");
+            _logger.LogWarning("GEMINI_API_KEY is not configured for /api/chat.");
+            if (_environment.IsDevelopment())
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    reply = "Chat setup error: GEMINI_API_KEY is missing on the server. Start `dotnet run` in the same terminal where you set it, or configure `dotnet user-secrets` for the server project."
+                });
+            }
+
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
                 reply = "I'm having trouble connecting right now. If things feel heavy, reaching out to 988 or someone you trust could help."
             });
         }
 
-        var model = _configuration["OPENROUTER_MODEL"] ?? "openai/gpt-4o-mini";
+        var model = ResolveGeminiModel();
         var payload = new
         {
-            model,
-            messages = new object[]
+            contents = new object[]
             {
                 new
                 {
-                    role = "system",
-                    content = "You are a supportive listener for a mental health web app. Respond with warmth, empathy, and calm, human language. Start by briefly acknowledging or reflecting the user's feelings. Keep replies supportive and non-judgmental, usually 3 to 5 sentences. Do not give medical advice. Do not act as a therapist or crisis counselor. When appropriate, encourage the user to reach out to a trusted person or crisis resource. Sometimes include one gentle follow-up question."
-                },
-                new
-                {
                     role = "user",
-                    content = message
+                    parts = new object[]
+                    {
+                        new
+                        {
+                            text = message
+                        }
+                    }
                 }
             },
-            temperature = 0.8
+            systemInstruction = new
+            {
+                parts = new object[]
+                {
+                    new
+                    {
+                        text = "You are a supportive listener for a mental health web app. Respond with warmth, empathy, and calm, human language. Start by briefly acknowledging or reflecting the user's feelings. Keep replies supportive and non-judgmental, usually 3 to 5 sentences. Do not give medical advice. Do not act as a therapist or crisis counselor. When appropriate, encourage the user to reach out to a trusted person or crisis resource. Sometimes include one gentle follow-up question."
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                temperature = 0.8,
+                maxOutputTokens = 300
+            }
         };
 
         var client = _httpClientFactory.CreateClient();
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-        client.DefaultRequestHeaders.TryAddWithoutValidation("HTTP-Referer", "http://localhost:5027");
-        client.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "SafeHarbor");
 
         using var httpContent = new StringContent(
             JsonSerializer.Serialize(payload),
@@ -95,7 +117,7 @@ public class ChatController : ControllerBase
             "application/json");
 
         using var response = await client.PostAsync(
-            "https://openrouter.ai/api/v1/chat/completions",
+            $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={Uri.EscapeDataString(apiKey)}",
             httpContent,
             cancellationToken);
 
@@ -109,13 +131,18 @@ public class ChatController : ControllerBase
         }
         else
         {
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var llmResponse = await JsonSerializer.DeserializeAsync<OpenRouterChatResponse>(stream, cancellationToken: cancellationToken);
-            reply = llmResponse?.Choices?
+            var rawResponse = await response.Content.ReadAsStringAsync(cancellationToken);
+            var llmResponse = JsonSerializer.Deserialize<GeminiGenerateContentResponse>(rawResponse, GeminiJsonOptions);
+            reply = llmResponse?.Candidates?
                 .FirstOrDefault()?
-                .Message?
                 .Content?
+                .TextContent?
                 .Trim();
+
+            if (string.IsNullOrWhiteSpace(reply))
+            {
+                _logger.LogError("Gemini returned HTTP 200 but no usable reply. Raw body: {Body}", rawResponse);
+            }
         }
 
         if (string.IsNullOrWhiteSpace(reply))
@@ -123,9 +150,10 @@ public class ChatController : ControllerBase
             _logger.LogError("Chat API returned no usable reply. Last error: {LastError}", lastError);
             if (!string.IsNullOrWhiteSpace(lastError))
             {
+                var friendlyError = TryBuildFriendlyGeminiError(lastError);
                 return StatusCode(StatusCodes.Status502BadGateway, new
                 {
-                    reply = $"Chat setup error: {lastError}"
+                    reply = friendlyError ?? $"Chat setup error: {lastError}"
                 });
             }
 
@@ -138,29 +166,82 @@ public class ChatController : ControllerBase
         return Ok(new { reply });
     }
 
+    private string? ResolveGeminiApiKey() =>
+        _configuration["GEMINI_API_KEY"] ??
+        _configuration["Gemini:ApiKey"];
+
+    private string ResolveGeminiModel() =>
+        _configuration["GEMINI_MODEL"] ??
+        _configuration["Gemini:Model"] ??
+        "gemini-2.5-flash";
+
+    private static string? TryBuildFriendlyGeminiError(string errorJson)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(errorJson);
+            var root = document.RootElement;
+            if (!root.TryGetProperty("error", out var error))
+            {
+                return null;
+            }
+
+            var code = error.TryGetProperty("code", out var codeElement) && codeElement.ValueKind == JsonValueKind.Number
+                ? codeElement.GetInt32()
+                : 0;
+
+            var message = error.TryGetProperty("message", out var messageElement) && messageElement.ValueKind == JsonValueKind.String
+                ? messageElement.GetString()
+                : null;
+
+            if (code == 404 && !string.IsNullOrWhiteSpace(message))
+            {
+                return $"Chat setup error: Gemini model not found. The configured model name is likely outdated or unsupported. Google currently documents `gemini-2.5-flash` and `gemini-2.0-flash` as valid model codes.";
+            }
+
+            if (code == 429)
+            {
+                return "Chat setup error: Gemini accepted the request, but your project has no available quota for this model right now. Try again later, switch models, or check your Gemini quota page.";
+            }
+        }
+        catch
+        {
+            // Fall back to the raw error when the body is not valid JSON.
+        }
+
+        return null;
+    }
+
     private static bool IsHighRisk(string message)
     {
         var normalized = message.ToLowerInvariant();
         return HighRiskPhrases.Any(normalized.Contains);
     }
 
-    private sealed class OpenRouterChatResponse
+    private sealed class GeminiGenerateContentResponse
     {
-        public List<OpenRouterChoice>? Choices { get; set; }
+        public List<GeminiCandidate>? Candidates { get; set; }
     }
 
-    private sealed class OpenRouterChoice
+    private sealed class GeminiCandidate
     {
-        public OpenRouterMessage? Message { get; set; }
+        public GeminiContent? Content { get; set; }
     }
 
-    private sealed class OpenRouterMessage
+    private sealed class GeminiContent
     {
-        [JsonPropertyName("content")]
+        public List<GeminiPart>? Parts { get; set; }
+
+        public string? TextContent => Parts is null
+            ? null
+            : string.Join("\n", Parts
+                .Select(part => part.Text?.Trim())
+                .Where(text => !string.IsNullOrWhiteSpace(text)));
+    }
+
+    private sealed class GeminiPart
+    {
         public string? Text { get; set; }
-
-        [JsonIgnore]
-        public string? Content => Text;
     }
 }
 

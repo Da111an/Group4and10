@@ -23,11 +23,23 @@ Open `http://localhost:5027` for the app (frontend + API on one host).
 
 The support chat widget lives in `client/src/components/chat-widget.tsx` and sends requests to `POST /api/chat`.
 
-Set the backend environment variables before running `dotnet run`:
+Set the backend environment variables before running `dotnet run` in the same PowerShell window:
 
 ```powershell
-$env:OPENROUTER_API_KEY="your_openrouter_api_key_here"
-$env:OPENROUTER_MODEL="openai/gpt-4o-mini"
+cd server
+$env:GEMINI_API_KEY="your_gemini_api_key_here"
+$env:GEMINI_MODEL="gemini-2.5-flash"
+dotnet run
+```
+
+If you close that terminal or start the server in a different one, PowerShell will not keep those `$env:` values. You can also persist them for local development with:
+
+```powershell
+cd server
+dotnet user-secrets init
+dotnet user-secrets set "Gemini:ApiKey" "your_gemini_api_key_here"
+dotnet user-secrets set "Gemini:Model" "gemini-2.5-flash"
+dotnet run
 ```
 
 The API route is implemented in `server/Controllers/ChatController.cs`, and the frontend request helper is in `client/src/api/chat.ts`.
