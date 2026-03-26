@@ -43,7 +43,6 @@ dotnet run
 ```
 
 The API route is implemented in `server/Controllers/ChatController.cs`, and the frontend request helper is in `client/src/api/chat.ts`.
-
 ## Project Structure
 
 ```

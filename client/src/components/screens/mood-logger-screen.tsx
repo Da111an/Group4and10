@@ -115,7 +115,7 @@ export function MoodLoggerScreen({
   if (step === "done" || saved) {
     const displayEntry = todayEntry || { mood, sleep, emotions }
     return (
-      <div className="flex flex-col gap-6 pb-28 pt-6 sm:pt-8 sm:pb-32 lg:pb-28">
+      <div className="flex flex-col gap-6 px-5 pb-28 pt-6">
         <button
           onClick={onBack}
           className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -204,7 +204,7 @@ export function MoodLoggerScreen({
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-28 pt-6 sm:pt-8 sm:pb-32 lg:pb-28">
+    <div className="flex flex-col gap-6 px-5 pb-28 pt-6">
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -236,7 +236,7 @@ export function MoodLoggerScreen({
             </p>
           </div>
 
-          <div className="mx-auto grid w-full max-w-2xl grid-cols-1 gap-3 md:max-w-4xl md:grid-cols-2 lg:gap-4">
+          <div className="flex w-full flex-col gap-3">
             {MOOD_OPTIONS.map((opt) => {
               const Icon = opt.icon
               return (
@@ -296,10 +296,10 @@ export function MoodLoggerScreen({
               step={0.5}
               value={sleep}
               onChange={(e) => setSleep(Number(e.target.value))}
-              className="w-full max-w-xs md:max-w-md lg:max-w-lg accent-secondary"
+              className="w-full max-w-xs accent-secondary"
               aria-label="Hours of sleep"
             />
-            <div className="flex w-full max-w-xs md:max-w-md lg:max-w-lg justify-between text-xs text-muted-foreground">
+            <div className="flex w-full max-w-xs justify-between text-xs text-muted-foreground">
               <span>0h</span>
               <span>6h</span>
               <span>12h</span>
@@ -326,7 +326,7 @@ export function MoodLoggerScreen({
             </p>
           </div>
 
-          <div className="mx-auto grid w-full max-w-2xl grid-cols-2 gap-2 sm:grid-cols-3 md:max-w-3xl lg:grid-cols-4 lg:gap-3">
+          <div className="flex flex-wrap justify-center gap-2">
             {EMOTION_TAGS.map((tag) => (
               <button
                 key={tag}

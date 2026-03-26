@@ -28,14 +28,17 @@ namespace Server.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Relationship")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UserId")
@@ -56,10 +59,12 @@ namespace Server.Migrations
 
                     b.Property<string>("ActionType")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ActionValue")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Timestamp")
@@ -73,6 +78,66 @@ namespace Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Interactions");
+                });
+
+            modelBuilder.Entity("Server.Models.KeyResult", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("CurrentValue")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("ObjectiveId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("StartingValue")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObjectiveId");
+
+                    b.ToTable("KeyResults");
+                });
+
+            modelBuilder.Entity("Server.Models.KeyResultHistory", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KeyResultId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("RecordedValue")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KeyResultId");
+
+                    b.ToTable("KeyResultHistories");
                 });
 
             modelBuilder.Entity("Server.Models.MoodEntry", b =>
@@ -89,6 +154,7 @@ namespace Server.Migrations
 
                     b.Property<string>("PrimaryEmotion")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UserId")
@@ -101,6 +167,37 @@ namespace Server.Migrations
                     b.ToTable("MoodEntries");
                 });
 
+            modelBuilder.Entity("Server.Models.Objective", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TargetDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserAccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserAccountId");
+
+                    b.ToTable("Objectives");
+                });
+
             modelBuilder.Entity("Server.Models.Resource", b =>
                 {
                     b.Property<int>("ResourceId")
@@ -109,18 +206,22 @@ namespace Server.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("IconAsset")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TargetUrl")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.HasKey("ResourceId");
@@ -136,6 +237,7 @@ namespace Server.Migrations
 
                     b.Property<string>("DeviceType")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("InteractionCount")
@@ -162,6 +264,7 @@ namespace Server.Migrations
 
                     b.Property<string>("AuthorName")
                         .IsRequired()
+                        .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Content")
@@ -176,6 +279,7 @@ namespace Server.Migrations
 
                     b.Property<string>("ProfilePic")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.HasKey("TestimonialId");
@@ -194,6 +298,7 @@ namespace Server.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsStudent")
@@ -204,11 +309,102 @@ namespace Server.Migrations
 
                     b.Property<string>("PasscodeHash")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.HasKey("UserId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Server.Models.UserAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedUsername")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasFilter("\"NormalizedEmail\" <> ''");
+
+                    b.HasIndex("NormalizedUsername")
+                        .IsUnique();
+
+                    b.ToTable("UserAccounts");
+                });
+
+            modelBuilder.Entity("Server.Models.UserDailyCheckIn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DateKey")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmotionsJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Mood")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Sleep")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserAccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserAccountId", "DateKey")
+                        .IsUnique();
+
+                    b.ToTable("UserDailyCheckIns");
                 });
 
             modelBuilder.Entity("Server.Models.Contact", b =>
@@ -233,6 +429,28 @@ namespace Server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Server.Models.KeyResult", b =>
+                {
+                    b.HasOne("Server.Models.Objective", "Objective")
+                        .WithMany("KeyResults")
+                        .HasForeignKey("ObjectiveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Objective");
+                });
+
+            modelBuilder.Entity("Server.Models.KeyResultHistory", b =>
+                {
+                    b.HasOne("Server.Models.KeyResult", "KeyResult")
+                        .WithMany("HistoryLogs")
+                        .HasForeignKey("KeyResultId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("KeyResult");
+                });
+
             modelBuilder.Entity("Server.Models.MoodEntry", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
@@ -244,6 +462,17 @@ namespace Server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Server.Models.Objective", b =>
+                {
+                    b.HasOne("Server.Models.UserAccount", "UserAccount")
+                        .WithMany()
+                        .HasForeignKey("UserAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserAccount");
+                });
+
             modelBuilder.Entity("Server.Models.Session", b =>
                 {
                     b.HasOne("Server.Models.User", "User")
@@ -253,6 +482,16 @@ namespace Server.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Server.Models.KeyResult", b =>
+                {
+                    b.Navigation("HistoryLogs");
+                });
+
+            modelBuilder.Entity("Server.Models.Objective", b =>
+                {
+                    b.Navigation("KeyResults");
                 });
 
             modelBuilder.Entity("Server.Models.User", b =>

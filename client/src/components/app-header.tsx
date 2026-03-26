@@ -15,7 +15,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="flex w-full items-center justify-between py-3 sm:py-3.5">
+      <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
         <div>
           <p className="text-lg font-semibold text-foreground">SafeHarbor</p>
           {isLoggedIn ? (
