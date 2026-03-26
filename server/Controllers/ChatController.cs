@@ -289,9 +289,12 @@ public class ChatController : ControllerBase
         instruction.AppendLine("Then provide practical, gentle support and one small next step they can take right now.");
         instruction.AppendLine("When risk language appears, encourage immediate crisis support (call/text 988 in the US, 911 for immediate danger).");
         instruction.AppendLine("Do not provide medical diagnosis or treatment advice.");
-        instruction.AppendLine("Write exactly 3 to 5 complete sentences.");
+        instruction.AppendLine("Respond in a natural length that fits the user's need.");
+        instruction.AppendLine("Be thoughtful and genuine rather than following a rigid sentence count.");
         instruction.AppendLine("Every sentence must be grammatically complete and end with punctuation.");
         instruction.AppendLine("Do not return fragments, sentence stubs, lists, markdown, or JSON.");
+        instruction.AppendLine("Avoid formulaic therapist phrases and do not quote the user's exact message back at them.");
+        instruction.AppendLine("Sound like a normal, caring person in a natural conversation.");
         instruction.AppendLine("You have app-specific user context below. Use it gently to personalize your reply, but do not mention technical details or expose private data.");
         instruction.AppendLine("User context:");
         instruction.AppendLine(personalizedContext);
@@ -312,7 +315,7 @@ public class ChatController : ControllerBase
         }
 
         var sentenceEndCount = text.Count(c => c is '.' or '!' or '?');
-        return sentenceEndCount >= 2;
+        return sentenceEndCount >= 1;
     }
 
     private static List<string> ExtractEmotions(string emotionsJson)
@@ -455,7 +458,6 @@ public class ChatController : ControllerBase
     {
         var normalized = userMessage.Trim().ToLowerInvariant();
         var hash = BuildStableHash($"{normalized}|{history?.Count ?? 0}");
-        var reflection = BuildReflection(userMessage);
         var priorAssistant = history?
             .LastOrDefault(x => string.Equals(x.Role, "assistant", StringComparison.OrdinalIgnoreCase))
             ?.Text;
@@ -482,9 +484,9 @@ public class ChatController : ControllerBase
         {
             var templates = new[]
             {
-                $"{reflection} A solid first step is to call or text 988 and let them know what feels hardest right now. You can also open the SafeHarbor resources tab and pick one option you can contact today. If you are in immediate danger, call 911 now.",
-                $"{reflection} If you want immediate support, 988 is available by call or text right now. In SafeHarbor, you can review crisis and local support resources and choose one that feels doable for this moment. If you are in immediate danger, call 911 now.",
-                $"{reflection} One practical next move is to reach out to 988 for live support while you are feeling this way. After that, use the SafeHarbor resources screen to choose one service and make contact today. If you are in immediate danger, call 911 now."
+                "That makes sense, and I am glad you asked for support. A good next step is to call or text 988 and tell them what feels hardest right now. You can also open the SafeHarbor resources tab and pick one option you can contact today. If you are in immediate danger, call 911 now.",
+                "You are not alone in this, and reaching out is a strong step. If you want immediate support, 988 is available right now by call or text. In SafeHarbor, you can also choose one resource that feels easiest to contact first. If you are in immediate danger, call 911 now.",
+                "I hear you, and we can take this one step at a time. One practical move right now is to contact 988 for live support. After that, use the SafeHarbor resources page and choose one service you can contact today. If you are in immediate danger, call 911 now."
             };
             return SelectNonRepeatingTemplate(templates, hash, priorAssistant);
         }
@@ -504,18 +506,18 @@ public class ChatController : ControllerBase
         {
             var templates = new[]
             {
-                $"{reflection} I do not have personal favorites, but I can still help with what comforts people when stress is high. If you want, I can suggest a few simple food or routine ideas that can help you feel grounded tonight.",
-                $"{reflection} I do not have personal likes or dislikes, but we can still talk about what might help you feel better right now. If you want, I can share calming food and self-care options that are easy to try.",
-                $"{reflection} I do not have personal favorites, but I can help you pick something comforting that fits how you are feeling. If you want, tell me what sounds manageable and I will suggest a few low-effort options."
+                "I do not have personal favorites, but I can still help with what comforts people when stress is high. If you want, I can suggest a few simple food or routine ideas that can help you feel grounded tonight.",
+                "I do not have personal likes or dislikes, but we can still talk about what might help you feel better right now. If you want, I can share calming food and self-care options that are easy to try.",
+                "I do not have personal favorites, but I can help you pick something comforting that fits how you are feeling. If you want, tell me what sounds manageable and I will suggest a few low-effort options."
             };
             return SelectNonRepeatingTemplate(templates, hash, priorAssistant);
         }
 
         var generalTemplates = new[]
         {
-            $"{reflection} You do not have to carry this by yourself, and it makes sense to want help. One small step right now is to text 988 or message someone you trust and tell them you need support. If you are in immediate danger, call 911 now.",
-            $"{reflection} I am glad you said this out loud because reaching out is an important step. Try one simple action now, such as texting 988 or asking a trusted person to stay with you while you calm down. If you are in immediate danger, call 911 now.",
-            $"{reflection} It is okay to ask for support when things feel heavy. A useful next step is to contact 988, or send a short message to someone safe saying that you need help today. If you are in immediate danger, call 911 now."
+            "That sounds really hard, and you do not have to carry it by yourself. One small step right now is to text 988 or message someone you trust and tell them you need support. If you are in immediate danger, call 911 now.",
+            "I am glad you said that out loud because reaching out is an important step. Try one simple action now, like texting 988 or asking a trusted person to stay with you while you calm down. If you are in immediate danger, call 911 now.",
+            "It is completely okay to ask for support when things feel heavy. A useful next step is to contact 988, or send a short message to someone safe saying you need help today. If you are in immediate danger, call 911 now."
         };
         return SelectNonRepeatingTemplate(generalTemplates, hash, priorAssistant);
     }
@@ -577,25 +579,6 @@ public class ChatController : ControllerBase
 
             return Math.Abs(hash);
         }
-    }
-
-    private static string BuildReflection(string userMessage)
-    {
-        var text = userMessage.Trim();
-        if (text.Length == 0)
-        {
-            return "I hear you.";
-        }
-
-        var shortText = text.Length > 90 ? $"{text[..90].Trim()}..." : text;
-        var options = new[]
-        {
-            $"I hear you saying \"{shortText},\" and I am really glad you reached out.",
-            $"Thank you for sharing \"{shortText}.\" You do not have to handle this alone.",
-            $"I appreciate you telling me \"{shortText},\" and I am here with you."
-        };
-        var index = BuildStableHash(shortText) % options.Length;
-        return options[index];
     }
 
     private static string SelectNonRepeatingTemplate(string[] options, int seed, string? previousAssistantMessage)
