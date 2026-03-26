@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -88,20 +89,7 @@ public class ChatController : ControllerBase
         var systemInstruction = BuildSystemInstruction(personalizedContext);
         var payload = new
         {
-            contents = new object[]
-            {
-                new
-                {
-                    role = "user",
-                    parts = new object[]
-                    {
-                        new
-                        {
-                            text = message
-                        }
-                    }
-                }
-            },
+            contents = BuildGeminiContents(request, message),
             systemInstruction = new
             {
                 parts = new object[]
@@ -114,44 +102,78 @@ public class ChatController : ControllerBase
             },
             generationConfig = new
             {
-                temperature = 0.8,
-                maxOutputTokens = 300
+                temperature = 0.5,
+                maxOutputTokens = 500
             }
         };
 
         var client = _httpClientFactory.CreateClient();
-
-        using var httpContent = new StringContent(
-            JsonSerializer.Serialize(payload),
-            Encoding.UTF8,
-            "application/json");
-
-        using var response = await client.PostAsync(
-            $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={Uri.EscapeDataString(apiKey)}",
-            httpContent,
-            cancellationToken);
+        var modelsToTry = new[] { model, "gemini-2.0-flash" }
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         string? reply = null;
         string? lastError = null;
-
-        if (!response.IsSuccessStatusCode)
+        foreach (var candidateModel in modelsToTry)
         {
-            lastError = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Gemini API call failed for model {Model} with status {StatusCode}: {Body}", model, response.StatusCode, lastError);
-        }
-        else
-        {
-            var rawResponse = await response.Content.ReadAsStringAsync(cancellationToken);
-            var llmResponse = JsonSerializer.Deserialize<GeminiGenerateContentResponse>(rawResponse, GeminiJsonOptions);
-            reply = llmResponse?.Candidates?
-                .FirstOrDefault()?
-                .Content?
-                .TextContent?
-                .Trim();
-
-            if (string.IsNullOrWhiteSpace(reply))
+            for (var attempt = 1; attempt <= 2; attempt++)
             {
-                _logger.LogError("Gemini returned HTTP 200 but no usable reply. Raw body: {Body}", rawResponse);
+                using var httpContent = new StringContent(
+                    JsonSerializer.Serialize(payload),
+                    Encoding.UTF8,
+                    "application/json");
+
+                using var response = await client.PostAsync(
+                    $"https://generativelanguage.googleapis.com/v1beta/models/{candidateModel}:generateContent?key={Uri.EscapeDataString(apiKey)}",
+                    httpContent,
+                    cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    lastError = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogWarning(
+                        "Gemini API call failed for model {Model} attempt {Attempt} with status {StatusCode}: {Body}",
+                        candidateModel,
+                        attempt,
+                        response.StatusCode,
+                        lastError);
+
+                    if (attempt == 1 && IsRetriableGeminiError((int)response.StatusCode, lastError))
+                    {
+                        await Task.Delay(500, cancellationToken);
+                        continue;
+                    }
+
+                    break;
+                }
+
+                var rawResponse = await response.Content.ReadAsStringAsync(cancellationToken);
+                var llmResponse = JsonSerializer.Deserialize<GeminiGenerateContentResponse>(rawResponse, GeminiJsonOptions);
+                reply = llmResponse?.Candidates?
+                    .FirstOrDefault()?
+                    .Content?
+                    .TextContent?
+                    .Trim();
+
+                if (string.IsNullOrWhiteSpace(reply))
+                {
+                    lastError = "Gemini returned no usable text content.";
+                    _logger.LogWarning("Gemini returned HTTP 200 but no usable reply for model {Model}.", candidateModel);
+                }
+                else if (!LooksCompleteReply(reply))
+                {
+                    _logger.LogWarning("Gemini returned incomplete-looking reply for model {Model}: {Reply}", candidateModel, reply);
+                    lastError = "Gemini returned an incomplete response.";
+                    reply = null;
+                }
+
+                break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(reply))
+            {
+                break;
             }
         }
 
@@ -161,15 +183,19 @@ public class ChatController : ControllerBase
             if (!string.IsNullOrWhiteSpace(lastError))
             {
                 var friendlyError = TryBuildFriendlyGeminiError(lastError);
-                return StatusCode(StatusCodes.Status502BadGateway, new
+                if (!string.IsNullOrWhiteSpace(friendlyError))
                 {
-                    reply = friendlyError ?? $"Chat setup error: {lastError}"
-                });
+                    var fallbackReply = BuildServiceFallbackReply(message, request?.History);
+                    return Ok(new
+                    {
+                        reply = fallbackReply
+                    });
+                }
             }
 
-            return StatusCode(StatusCodes.Status502BadGateway, new
+            return Ok(new
             {
-                reply = "I'm having trouble responding right now. If you need immediate support, call or text 988, or contact someone you trust."
+                reply = BuildServiceFallbackReply(message, request?.History)
             });
         }
 
@@ -256,16 +282,37 @@ public class ChatController : ControllerBase
     private static string BuildSystemInstruction(string personalizedContext)
     {
         var instruction = new StringBuilder();
-        instruction.AppendLine("You are a supportive listener for the SafeHarbor mental wellness app.");
-        instruction.AppendLine("Respond with warmth, empathy, and calm, human language.");
-        instruction.AppendLine("Start by briefly acknowledging or reflecting the user's feelings.");
-        instruction.AppendLine("Keep replies supportive and non-judgmental, usually 3 to 5 sentences.");
-        instruction.AppendLine("Do not give medical advice. Do not act as a therapist or crisis counselor.");
-        instruction.AppendLine("When appropriate, encourage the user to reach out to a trusted person or crisis resource.");
+        instruction.AppendLine("You are SafeHarbor, a supportive assistant inside a suicide-prevention and mental wellness app.");
+        instruction.AppendLine("Respond with warmth, calm, and non-judgmental language.");
+        instruction.AppendLine("Tailor your response to the user's app context and recent check-in patterns when relevant.");
+        instruction.AppendLine("Start by briefly acknowledging the user's feeling.");
+        instruction.AppendLine("Then provide practical, gentle support and one small next step they can take right now.");
+        instruction.AppendLine("When risk language appears, encourage immediate crisis support (call/text 988 in the US, 911 for immediate danger).");
+        instruction.AppendLine("Do not provide medical diagnosis or treatment advice.");
+        instruction.AppendLine("Write exactly 3 to 5 complete sentences.");
+        instruction.AppendLine("Every sentence must be grammatically complete and end with punctuation.");
+        instruction.AppendLine("Do not return fragments, sentence stubs, lists, markdown, or JSON.");
         instruction.AppendLine("You have app-specific user context below. Use it gently to personalize your reply, but do not mention technical details or expose private data.");
         instruction.AppendLine("User context:");
         instruction.AppendLine(personalizedContext);
         return instruction.ToString().Trim();
+    }
+
+    private static bool LooksCompleteReply(string reply)
+    {
+        var text = reply.Trim();
+        if (text.Length < 20)
+        {
+            return false;
+        }
+
+        if (!(text.EndsWith(".") || text.EndsWith("!") || text.EndsWith("?")))
+        {
+            return false;
+        }
+
+        var sentenceEndCount = text.Count(c => c is '.' or '!' or '?');
+        return sentenceEndCount >= 2;
     }
 
     private static List<string> ExtractEmotions(string emotionsJson)
@@ -355,6 +402,11 @@ public class ChatController : ControllerBase
             {
                 return "Chat setup error: Gemini accepted the request, but your project has no available quota for this model right now. Try again later, switch models, or check your Gemini quota page.";
             }
+
+            if (code == 503)
+            {
+                return "The chat model is temporarily busy right now. Please try again in a few moments.";
+            }
         }
         catch
         {
@@ -363,6 +415,230 @@ public class ChatController : ControllerBase
 
         return null;
     }
+
+    private static bool IsRetriableGeminiError(int statusCode, string? errorJson)
+    {
+        if (statusCode == 503)
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(errorJson))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(errorJson);
+            if (!document.RootElement.TryGetProperty("error", out var error))
+            {
+                return false;
+            }
+
+            var code = error.TryGetProperty("code", out var codeElement) && codeElement.ValueKind == JsonValueKind.Number
+                ? codeElement.GetInt32()
+                : 0;
+            var status = error.TryGetProperty("status", out var statusElement) && statusElement.ValueKind == JsonValueKind.String
+                ? statusElement.GetString()
+                : null;
+
+            return code == 503 || string.Equals(status, "UNAVAILABLE", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string BuildServiceFallbackReply(string userMessage, IReadOnlyList<ChatHistoryItem>? history)
+    {
+        var normalized = userMessage.Trim().ToLowerInvariant();
+        var hash = BuildStableHash($"{normalized}|{history?.Count ?? 0}");
+        var reflection = BuildReflection(userMessage);
+        var priorAssistant = history?
+            .LastOrDefault(x => string.Equals(x.Role, "assistant", StringComparison.OrdinalIgnoreCase))
+            ?.Text;
+
+        var asksForResources = ContainsWholeWord(normalized, "resource")
+            || ContainsWholeWord(normalized, "resources")
+            || ContainsWholeWord(normalized, "support")
+            || normalized.Contains("where can i")
+            || normalized.Contains("what can i do")
+            || normalized.Contains("what should i do")
+            || normalized.Contains("i need help");
+
+        var isGratitude = normalized.Contains("thank you")
+            || normalized.Contains("thanks")
+            || normalized.Contains("that helped")
+            || normalized.Contains("it helped");
+
+        var isCasualQuestion = normalized.Contains("favorite")
+            || normalized.Contains("food")
+            || normalized.Contains("movie")
+            || normalized.Contains("music");
+
+        if (asksForResources)
+        {
+            var templates = new[]
+            {
+                $"{reflection} A solid first step is to call or text 988 and let them know what feels hardest right now. You can also open the SafeHarbor resources tab and pick one option you can contact today. If you are in immediate danger, call 911 now.",
+                $"{reflection} If you want immediate support, 988 is available by call or text right now. In SafeHarbor, you can review crisis and local support resources and choose one that feels doable for this moment. If you are in immediate danger, call 911 now.",
+                $"{reflection} One practical next move is to reach out to 988 for live support while you are feeling this way. After that, use the SafeHarbor resources screen to choose one service and make contact today. If you are in immediate danger, call 911 now."
+            };
+            return SelectNonRepeatingTemplate(templates, hash, priorAssistant);
+        }
+
+        if (isGratitude)
+        {
+            var templates = new[]
+            {
+                "I am really glad to hear this helped, and I appreciate you telling me. You did something strong by reaching out when things were heavy. If difficult feelings come back, we can take the next step together.",
+                "Thank you for sharing that with me. I am glad this conversation gave you some relief today. If things start feeling heavy again, we can look at one small next step right away.",
+                "I am glad you feel a little better, and you deserve that support. You handled a hard moment with courage by speaking up. If you need support again, I am here and we can walk through it together."
+            };
+            return SelectNonRepeatingTemplate(templates, hash, priorAssistant);
+        }
+
+        if (isCasualQuestion)
+        {
+            var templates = new[]
+            {
+                $"{reflection} I do not have personal favorites, but I can still help with what comforts people when stress is high. If you want, I can suggest a few simple food or routine ideas that can help you feel grounded tonight.",
+                $"{reflection} I do not have personal likes or dislikes, but we can still talk about what might help you feel better right now. If you want, I can share calming food and self-care options that are easy to try.",
+                $"{reflection} I do not have personal favorites, but I can help you pick something comforting that fits how you are feeling. If you want, tell me what sounds manageable and I will suggest a few low-effort options."
+            };
+            return SelectNonRepeatingTemplate(templates, hash, priorAssistant);
+        }
+
+        var generalTemplates = new[]
+        {
+            $"{reflection} You do not have to carry this by yourself, and it makes sense to want help. One small step right now is to text 988 or message someone you trust and tell them you need support. If you are in immediate danger, call 911 now.",
+            $"{reflection} I am glad you said this out loud because reaching out is an important step. Try one simple action now, such as texting 988 or asking a trusted person to stay with you while you calm down. If you are in immediate danger, call 911 now.",
+            $"{reflection} It is okay to ask for support when things feel heavy. A useful next step is to contact 988, or send a short message to someone safe saying that you need help today. If you are in immediate danger, call 911 now."
+        };
+        return SelectNonRepeatingTemplate(generalTemplates, hash, priorAssistant);
+    }
+
+    private static object[] BuildGeminiContents(ChatRequest? request, string latestMessage)
+    {
+        var contents = new List<object>();
+        var history = request?.History?
+            .Where(item => item is not null && !string.IsNullOrWhiteSpace(item.Text))
+            .TakeLast(8)
+            .ToList();
+
+        if (history is not null)
+        {
+            foreach (var item in history)
+            {
+                var role = string.Equals(item.Role, "assistant", StringComparison.OrdinalIgnoreCase)
+                    ? "model"
+                    : "user";
+
+                contents.Add(new
+                {
+                    role,
+                    parts = new object[]
+                    {
+                        new
+                        {
+                            text = item.Text.Trim()
+                        }
+                    }
+                });
+            }
+        }
+
+        contents.Add(new
+        {
+            role = "user",
+            parts = new object[]
+            {
+                new
+                {
+                    text = latestMessage
+                }
+            }
+        });
+
+        return contents.ToArray();
+    }
+
+    private static int BuildStableHash(string text)
+    {
+        unchecked
+        {
+            var hash = 17;
+            foreach (var c in text)
+            {
+                hash = (hash * 31) + c;
+            }
+
+            return Math.Abs(hash);
+        }
+    }
+
+    private static string BuildReflection(string userMessage)
+    {
+        var text = userMessage.Trim();
+        if (text.Length == 0)
+        {
+            return "I hear you.";
+        }
+
+        var shortText = text.Length > 90 ? $"{text[..90].Trim()}..." : text;
+        var options = new[]
+        {
+            $"I hear you saying \"{shortText},\" and I am really glad you reached out.",
+            $"Thank you for sharing \"{shortText}.\" You do not have to handle this alone.",
+            $"I appreciate you telling me \"{shortText},\" and I am here with you."
+        };
+        var index = BuildStableHash(shortText) % options.Length;
+        return options[index];
+    }
+
+    private static string SelectNonRepeatingTemplate(string[] options, int seed, string? previousAssistantMessage)
+    {
+        if (options.Length == 0)
+        {
+            return "I am here with you.";
+        }
+
+        var startIndex = seed % options.Length;
+        if (string.IsNullOrWhiteSpace(previousAssistantMessage))
+        {
+            return options[startIndex];
+        }
+
+        for (var offset = 0; offset < options.Length; offset++)
+        {
+            var candidate = options[(startIndex + offset) % options.Length];
+            if (!HasSameOpening(candidate, previousAssistantMessage))
+            {
+                return candidate;
+            }
+        }
+
+        return options[startIndex];
+    }
+
+    private static bool HasSameOpening(string a, string b)
+    {
+        var startA = a.Trim().ToLowerInvariant();
+        var startB = b.Trim().ToLowerInvariant();
+        if (startA.Length == 0 || startB.Length == 0)
+        {
+            return false;
+        }
+
+        var prefixA = startA[..Math.Min(40, startA.Length)];
+        var prefixB = startB[..Math.Min(40, startB.Length)];
+        return prefixA == prefixB;
+    }
+
+    private static bool ContainsWholeWord(string text, string word) =>
+        Regex.IsMatch(text, $@"\b{Regex.Escape(word)}\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     private static bool IsHighRisk(string message)
     {
@@ -400,4 +676,11 @@ public class ChatController : ControllerBase
 public sealed class ChatRequest
 {
     public string Message { get; set; } = "";
+    public List<ChatHistoryItem> History { get; set; } = [];
+}
+
+public sealed class ChatHistoryItem
+{
+    public string Role { get; set; } = "user";
+    public string Text { get; set; } = "";
 }

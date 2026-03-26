@@ -42,7 +42,11 @@ export function ChatWidget() {
     setIsSending(true)
 
     try {
-      const reply = await sendChatMessage(userText)
+      const history = messages.map((msg) => ({
+        role: msg.role,
+        text: msg.text,
+      }))
+      const reply = await sendChatMessage(userText, history)
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "assistant", text: reply },

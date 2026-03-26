@@ -1,18 +1,27 @@
 export interface ChatMessageRequest {
   message: string
+  history?: ChatHistoryItem[]
 }
 
 export interface ChatMessageResponse {
   reply: string
 }
 
-export async function sendChatMessage(message: string): Promise<string> {
+export interface ChatHistoryItem {
+  role: "user" | "assistant"
+  text: string
+}
+
+export async function sendChatMessage(message: string, history: ChatHistoryItem[] = []): Promise<string> {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message } satisfies ChatMessageRequest),
+    body: JSON.stringify({
+      message,
+      history: history.slice(-8),
+    } satisfies ChatMessageRequest),
   })
 
   let data: ChatMessageResponse | null = null
