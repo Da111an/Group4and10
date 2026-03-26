@@ -1,6 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Server.Data;
+using Server.Models;
 
 namespace Server.Controllers;
 
@@ -8,6 +11,8 @@ namespace Server.Controllers;
 [Route("api/chat")]
 public class ChatController : ControllerBase
 {
+    private const string SessionAliasKey = "SafeHarbor.Alias";
+    private const string SessionUserIdKey = "SafeHarbor.UserId";
     private const string CrisisResponse =
         "I'm really sorry you're feeling this way. You don't have to go through this alone. You can call or text 988 right now to talk to a trained counselor, or chat via 988lifeline.org. If you're in immediate danger, please call 911.";
 
@@ -30,17 +35,20 @@ public class ChatController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILogger<ChatController> _logger;
     private readonly IHostEnvironment _environment;
+    private readonly AppDbContext _dbContext;
 
     public ChatController(
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
         ILogger<ChatController> logger,
-        IHostEnvironment environment)
+        IHostEnvironment environment,
+        AppDbContext dbContext)
     {
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _logger = logger;
         _environment = environment;
+        _dbContext = dbContext;
     }
 
     [HttpPost]
@@ -76,6 +84,8 @@ public class ChatController : ControllerBase
         }
 
         var model = ResolveGeminiModel();
+        var personalizedContext = await BuildUserContextAsync(cancellationToken);
+        var systemInstruction = BuildSystemInstruction(personalizedContext);
         var payload = new
         {
             contents = new object[]
@@ -98,7 +108,7 @@ public class ChatController : ControllerBase
                 {
                     new
                     {
-                        text = "You are a supportive listener for a mental health web app. Respond with warmth, empathy, and calm, human language. Start by briefly acknowledging or reflecting the user's feelings. Keep replies supportive and non-judgmental, usually 3 to 5 sentences. Do not give medical advice. Do not act as a therapist or crisis counselor. When appropriate, encourage the user to reach out to a trusted person or crisis resource. Sometimes include one gentle follow-up question."
+                        text = systemInstruction
                     }
                 }
             },
@@ -164,6 +174,148 @@ public class ChatController : ControllerBase
         }
 
         return Ok(new { reply });
+    }
+
+    private async Task<string> BuildUserContextAsync(CancellationToken cancellationToken)
+    {
+        var alias = HttpContext.Session.GetString(SessionAliasKey);
+        var userId = HttpContext.Session.GetInt32(SessionUserIdKey);
+        if (userId is null)
+        {
+            return string.IsNullOrWhiteSpace(alias)
+                ? "User is browsing as a guest and has no saved account data."
+                : $"User is browsing as guest alias '{alias}'.";
+        }
+
+        var account = await _dbContext.UserAccounts
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == userId.Value, cancellationToken);
+
+        var recentCheckIns = await _dbContext.UserDailyCheckIns
+            .AsNoTracking()
+            .Where(x => x.UserAccountId == userId.Value)
+            .OrderByDescending(x => x.DateKey)
+            .Take(7)
+            .ToListAsync(cancellationToken);
+
+        var objectives = await _dbContext.Objectives
+            .AsNoTracking()
+            .Include(x => x.KeyResults)
+            .Where(x => x.UserAccountId == userId.Value)
+            .OrderByDescending(x => x.TargetDate)
+            .Take(3)
+            .ToListAsync(cancellationToken);
+
+        var context = new StringBuilder();
+        var displayName = !string.IsNullOrWhiteSpace(account?.FullName)
+            ? account!.FullName
+            : (string.IsNullOrWhiteSpace(alias) ? "User" : alias!);
+        context.AppendLine($"Logged-in user: {displayName}.");
+
+        if (recentCheckIns.Count == 0)
+        {
+            context.AppendLine("No check-ins have been logged yet.");
+        }
+        else
+        {
+            var averageMood = Math.Round(recentCheckIns.Average(x => x.Mood), 1);
+            var averageSleep = Math.Round(recentCheckIns.Average(x => x.Sleep), 1);
+            context.AppendLine($"Recent check-ins (last {recentCheckIns.Count}): avg mood {averageMood}/5, avg sleep {averageSleep}h.");
+
+            var latest = recentCheckIns.First();
+            var emotions = ExtractEmotions(latest.EmotionsJson);
+            if (emotions.Count > 0)
+            {
+                context.AppendLine(
+                    $"Latest check-in on {latest.DateKey}: mood {latest.Mood}/5, sleep {latest.Sleep:0.#}h, emotions [{string.Join(", ", emotions.Take(5))}].");
+            }
+            else
+            {
+                context.AppendLine(
+                    $"Latest check-in on {latest.DateKey}: mood {latest.Mood}/5, sleep {latest.Sleep:0.#}h.");
+            }
+        }
+
+        if (objectives.Count == 0)
+        {
+            context.AppendLine("No active personal objectives are stored.");
+        }
+        else
+        {
+            context.AppendLine("Top active objectives:");
+            foreach (var objective in objectives)
+            {
+                var progress = BuildObjectiveProgressSummary(objective);
+                context.AppendLine($"- {objective.Title}: {progress}");
+            }
+        }
+
+        return context.ToString().Trim();
+    }
+
+    private static string BuildSystemInstruction(string personalizedContext)
+    {
+        var instruction = new StringBuilder();
+        instruction.AppendLine("You are a supportive listener for the SafeHarbor mental wellness app.");
+        instruction.AppendLine("Respond with warmth, empathy, and calm, human language.");
+        instruction.AppendLine("Start by briefly acknowledging or reflecting the user's feelings.");
+        instruction.AppendLine("Keep replies supportive and non-judgmental, usually 3 to 5 sentences.");
+        instruction.AppendLine("Do not give medical advice. Do not act as a therapist or crisis counselor.");
+        instruction.AppendLine("When appropriate, encourage the user to reach out to a trusted person or crisis resource.");
+        instruction.AppendLine("You have app-specific user context below. Use it gently to personalize your reply, but do not mention technical details or expose private data.");
+        instruction.AppendLine("User context:");
+        instruction.AppendLine(personalizedContext);
+        return instruction.ToString().Trim();
+    }
+
+    private static List<string> ExtractEmotions(string emotionsJson)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<string[]>(emotionsJson)?
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? [];
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    private static string BuildObjectiveProgressSummary(Objective objective)
+    {
+        if (objective.KeyResults is null || objective.KeyResults.Count == 0)
+        {
+            return "no key results yet";
+        }
+
+        var summaries = objective.KeyResults
+            .Take(3)
+            .Select(kr =>
+            {
+                var progress = CalculateProgressPercent(
+                    kr.StartingValue,
+                    kr.CurrentValue,
+                    kr.TargetValue);
+                var unit = string.IsNullOrWhiteSpace(kr.Unit) ? "" : $" {kr.Unit}";
+                return $"{kr.Title}: {kr.CurrentValue:0.#}/{kr.TargetValue:0.#}{unit} ({progress:0}%)";
+            });
+
+        return string.Join("; ", summaries);
+    }
+
+    private static double CalculateProgressPercent(double start, double current, double target)
+    {
+        var range = target - start;
+        if (Math.Abs(range) < 0.0001)
+        {
+            return 100;
+        }
+
+        var progress = ((current - start) / range) * 100d;
+        return Math.Clamp(progress, 0d, 100d);
     }
 
     private string? ResolveGeminiApiKey() =>

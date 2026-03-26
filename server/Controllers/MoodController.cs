@@ -190,6 +190,6 @@ public class MoodEntryRequest
 {
     public string Date { get; set; } = "";
     public int Mood { get; set; }
-    public int Sleep { get; set; }
+    public double Sleep { get; set; }
     public string[] Emotions { get; set; } = [];
 }

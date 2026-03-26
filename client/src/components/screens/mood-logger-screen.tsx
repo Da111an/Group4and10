@@ -14,7 +14,7 @@ import { deleteTodayMood, saveMoodEntry } from "@/api/mood"
 
 interface MoodLoggerScreenProps {
   todayEntry: MoodEntry | { mood: number; sleep: number; emotions?: string[] } | undefined
-  onSave: (entry: Omit<MoodEntry, "id">) => void
+  onSave: (entry: MoodEntry) => void
   onDeleteToday: () => void
   onBack: () => void
 }
@@ -68,24 +68,23 @@ export function MoodLoggerScreen({
   }, [])
 
   const handleSave = useCallback(async () => {
-    const entry: Omit<MoodEntry, "id"> = {
+    const payload = {
       date: new Date().toISOString().split("T")[0],
       mood,
       sleep,
       emotions,
     }
 
-    const result = await saveMoodEntry(entry)
+    const result = await saveMoodEntry(payload)
 
-    if (result.success) {
-      onSave(entry)
-      setSaved(true)
-      setStep("done")
-    } else {
-      onSave(entry)
-      setSaved(true)
-      setStep("done")
+    if (!result.success || !result.entry) {
+      window.alert("Could not save your check-in for this account. Please try again.")
+      return
     }
+
+    onSave(result.entry)
+    setSaved(true)
+    setStep("done")
   }, [mood, sleep, emotions, onSave])
 
   const handleEditToday = useCallback(() => {

@@ -5,6 +5,9 @@ client/node_modules/
 # .NET
 server/bin/
 server/obj/
+server/*.db-wal
+server/*.db-shm
+server/*.db-journal
 
 # IDE
 .vs/
