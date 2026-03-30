@@ -14,24 +14,24 @@
     --font-dm-sans: 'Avenir Next', 'Helvetica Neue', system-ui, sans-serif;
 
     /* SafeHarbor — Sage Green, Slate Blue, Warm Cream */
-    --background: 40 33% 96%;
-    --foreground: 200 25% 20%;
-    --card: 40 30% 98%;
-    --card-foreground: 200 25% 20%;
-    --popover: 40 30% 98%;
-    --popover-foreground: 200 25% 20%;
-    --primary: 150 30% 42%;
+    --background: 150 16% 91%;
+    --foreground: 200 25% 17%;
+    --card: 150 16% 95%;
+    --card-foreground: 200 25% 17%;
+    --popover: 150 16% 95%;
+    --popover-foreground: 200 25% 17%;
+    --primary: 150 30% 38%;
     --primary-foreground: 40 33% 98%;
     --secondary: 210 20% 52%;
     --secondary-foreground: 40 33% 98%;
-    --muted: 150 15% 92%;
-    --muted-foreground: 200 15% 46%;
-    --accent: 150 20% 88%;
+    --muted: 150 10% 82%;
+    --muted-foreground: 200 14% 36%;
+    --accent: 150 14% 82%;
     --accent-foreground: 150 30% 30%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 150 15% 86%;
-    --input: 150 15% 86%;
+    --border: 150 10% 68%;
+    --input: 150 10% 68%;
     --ring: 150 30% 42%;
     --chart-1: 150 30% 42%;
     --chart-2: 210 20% 52%;

@@ -54,7 +54,7 @@ export function LandingScreen({
         <div className="absolute top-1/3 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-accent/30" />
       </div>
 
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8">
+      <div className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 lg:max-w-xl">
         <div className="flex flex-col items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10" aria-hidden="true">
             <Waves className="h-8 w-8 text-primary" />

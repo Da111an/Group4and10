@@ -125,7 +125,7 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
   })
 
   return (
-    <main className="flex flex-col gap-5 px-5 pb-28 pt-6" role="main">
+    <main className="flex flex-col gap-5 px-5 pb-28 pt-6 lg:px-8" role="main">
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -143,7 +143,7 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
       </div>
 
       {/* SEARCH BAR */}
-      <div className="relative">
+      <div className="relative lg:max-w-2xl">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
         <input
           type="text"
@@ -156,7 +156,7 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
       </div>
 
       <div
-        className="flex gap-2 rounded-xl bg-muted p-1"
+        className="flex gap-2 rounded-xl bg-muted p-1 lg:max-w-md"
         role="radiogroup"
         aria-label="Filter resources"
       >
@@ -184,7 +184,7 @@ export function ResourceScreen({ onBack, backLabel = "Dashboard" }: ResourceScre
         ))}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 xl:grid-cols-3">
         {filtered.length > 0 ? (
           filtered.map((resource) => {
             const Icon = ICON_MAP[resource.iconKey as keyof typeof ICON_MAP] ?? Phone

@@ -14,8 +14,16 @@ interface ChatItem {
 const STARTER_MESSAGE =
   "Hi, I am here to listen. Share what is on your mind, and I can offer supportive guidance."
 
-export function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false)
+interface ChatWidgetProps {
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
+  showLauncher?: boolean
+}
+
+export function ChatWidget({ isOpen: controlledIsOpen, onOpenChange, showLauncher = true }: ChatWidgetProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const isControlled = controlledIsOpen !== undefined
+  const isOpen = isControlled ? controlledIsOpen : uncontrolledOpen
   const [input, setInput] = useState("")
   const [isSending, setIsSending] = useState(false)
   const [messages, setMessages] = useState<ChatItem[]>([
@@ -25,6 +33,12 @@ export function ChatWidget() {
   const listRef = useRef<HTMLDivElement>(null)
 
   const canSend = useMemo(() => input.trim().length > 0 && !isSending, [input, isSending])
+  const setOpen = (open: boolean) => {
+    if (!isControlled) {
+      setUncontrolledOpen(open)
+    }
+    onOpenChange?.(open)
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -71,7 +85,7 @@ export function ChatWidget() {
     <div className="fixed bottom-28 right-4 z-30 flex flex-col items-end gap-3">
       {isOpen && (
         <section
-          className="w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-card shadow-xl"
+          className="w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-card shadow-xl lg:w-[30rem]"
           role="dialog"
           aria-label="Support chat"
         >
@@ -81,7 +95,7 @@ export function ChatWidget() {
               <p className="text-xs text-muted-foreground">Private and anonymous</p>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => setOpen(false)}
               className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Close chat"
             >
@@ -133,14 +147,16 @@ export function ChatWidget() {
         </section>
       )}
 
-      <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="safe-harbor-transition inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg hover:bg-primary/90"
-        aria-label={isOpen ? "Hide support chat" : "Open support chat"}
-      >
-        <MessageCircle className="h-4 w-4" aria-hidden="true" />
-        {isOpen ? "Close chat" : "Chat"}
-      </button>
+      {showLauncher && (
+        <button
+          onClick={() => setOpen(!isOpen)}
+          className="safe-harbor-transition inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg hover:bg-primary/90"
+          aria-label={isOpen ? "Hide support chat" : "Open support chat"}
+        >
+          <MessageCircle className="h-4 w-4" aria-hidden="true" />
+          {isOpen ? "Close chat" : "Chat"}
+        </button>
+      )}
     </div>
   )
 }

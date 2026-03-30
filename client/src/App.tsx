@@ -36,6 +36,7 @@ export default function App() {
   const [todayStatusLoaded, setTodayStatusLoaded] = useState(false)
   const [checkInPromptOpen, setCheckInPromptOpen] = useState(false)
   const [checkInPromptDismissed, setCheckInPromptDismissed] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
 
   const handleNavigate = useCallback((screen: string) => {
     setCurrentScreen(screen as Screen)
@@ -182,7 +183,7 @@ export default function App() {
 
   if (currentScreen === "landing") {
     return (
-      <div className="mx-auto min-h-dvh max-w-lg">
+      <div className="mx-auto min-h-dvh max-w-lg lg:max-w-4xl xl:max-w-6xl">
         <LandingScreen
           mode={landingMode}
           onModeChange={setLandingMode}
@@ -204,7 +205,7 @@ export default function App() {
   // Unauthenticated resources view: allow guest access to crisis/help resources
   if (currentScreen === "resources" && !profile) {
     return (
-      <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+      <div className="mx-auto min-h-dvh max-w-lg lg:max-w-4xl xl:max-w-6xl" id="main-content">
         <AppHeader
           isLoggedIn={false}
           onLoginClick={handleGoToLogin}
@@ -235,7 +236,7 @@ export default function App() {
   }
 
   return (
-  <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+  <div className="mx-auto min-h-dvh max-w-lg lg:max-w-4xl xl:max-w-6xl" id="main-content">
     <AppHeader
       isLoggedIn={!!profile}
       name={profile?.alias ?? "Friend"}
@@ -287,6 +288,8 @@ export default function App() {
     <FluidNav
       currentScreen={currentScreen}
       onNavigate={handleNavigate}
+      chatOpen={chatOpen}
+      onChatToggle={() => setChatOpen((prev) => !prev)}
       onCrisis={() => setCrisisOpen(true)}
     />
 
@@ -327,7 +330,11 @@ export default function App() {
       isOpen={crisisOpen}
       onClose={() => setCrisisOpen(false)}
     />
-    <ChatWidget />
+    <ChatWidget
+      isOpen={chatOpen}
+      onOpenChange={setChatOpen}
+      showLauncher={false}
+    />
   </div>
  )
 }

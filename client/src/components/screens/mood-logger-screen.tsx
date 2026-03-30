@@ -26,6 +26,7 @@ const MOOD_OPTIONS = [
   { value: 4, label: "Good", icon: Smile, color: "text-chart-1 bg-chart-1/10 border-chart-1/30" },
   { value: 5, label: "Thriving", icon: SmilePlus, color: "text-primary bg-primary/10 border-primary/30" },
 ]
+const MOOD_OPTIONS_DESC = [...MOOD_OPTIONS].sort((a, b) => b.value - a.value)
 
 const EMOTION_TAGS = [
   "Anxious",
@@ -114,7 +115,7 @@ export function MoodLoggerScreen({
   if (step === "done" || saved) {
     const displayEntry = todayEntry || { mood, sleep, emotions }
     return (
-      <div className="flex flex-col gap-6 px-5 pb-28 pt-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-28 pt-6 lg:px-8">
         <button
           onClick={onBack}
           className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -138,7 +139,7 @@ export function MoodLoggerScreen({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2">
           <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
             <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${MOOD_OPTIONS[displayEntry.mood - 1]?.color}`}>
               {(() => {
@@ -167,7 +168,7 @@ export function MoodLoggerScreen({
           </div>
 
           {displayEntry.emotions && displayEntry.emotions.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="rounded-2xl border border-border bg-card p-4 lg:col-span-2">
               <p className="mb-2 text-xs text-muted-foreground">Emotions</p>
               <div className="flex flex-wrap gap-2">
                 {displayEntry.emotions.map((tag) => (
@@ -186,7 +187,7 @@ export function MoodLoggerScreen({
         <div className="flex gap-3">
           <button
             onClick={handleEditToday}
-            className="safe-harbor-transition flex-1 rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary/30"
+            className="safe-harbor-transition flex-1 rounded-xl border border-border/90 bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:border-primary/40 hover:bg-white/95"
           >
             Edit today&apos;s check-in
           </button>
@@ -203,7 +204,7 @@ export function MoodLoggerScreen({
   }
 
   return (
-    <div className="flex flex-col gap-6 px-5 pb-28 pt-6">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 pb-28 pt-6 lg:px-8">
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -235,8 +236,8 @@ export function MoodLoggerScreen({
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-3">
-            {MOOD_OPTIONS.map((opt) => {
+          <div className="flex w-full flex-col gap-3 lg:grid lg:grid-cols-2">
+            {MOOD_OPTIONS_DESC.map((opt) => {
               const Icon = opt.icon
               return (
                 <button

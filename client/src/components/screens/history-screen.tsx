@@ -12,7 +12,7 @@ export function HistoryScreen({ entries, onBack }: HistoryScreenProps) {
   const sortedEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date))
 
   return (
-    <div className="flex flex-col gap-6 px-5 pb-28 pt-6">
+    <div className="flex flex-col gap-6 px-5 pb-28 pt-6 lg:px-8">
       <button
         onClick={onBack}
         className="flex items-center gap-2 self-start text-sm text-muted-foreground"
@@ -34,7 +34,7 @@ export function HistoryScreen({ entries, onBack }: HistoryScreenProps) {
           <p className="text-sm text-muted-foreground">No check-ins yet.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 xl:grid-cols-3">
           {sortedEntries.map((entry) => {
             const [year, month, day] = entry.date.split("-").map(Number)
             const entryDate = new Date(year, month - 1, day)
