@@ -110,11 +110,41 @@ export function MoodLoggerScreen({ todayEntry, onSave, onDeleteToday, onBack }: 
         </div>
       )}
 
-      {step === "sleep" && (
+{step === "sleep" && (
         <div className="flex flex-col items-center gap-8">
-          <h2 className="text-xl font-bold text-foreground">How did you sleep?</h2>
-          <input type="range" min={0} max={12} step={0.5} value={sleep} onChange={(e) => setSleep(Number(e.target.value))} className="w-full max-w-xs" />
-          <button onClick={() => setStep("emotions")} className="rounded-xl bg-primary px-8 py-3 font-semibold text-primary-foreground">Next</button>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-foreground">How did you sleep?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Drag to set your hours of sleep last night.</p>
+          </div>
+
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-secondary/20 bg-secondary/5">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-foreground">{sleep}</p>
+                <p className="text-xs text-muted-foreground">hours</p>
+              </div>
+            </div>
+
+            <input 
+              type="range" 
+              min={0} 
+              max={12} 
+              step={0.5} 
+              value={sleep} 
+              onChange={(e) => setSleep(Number(e.target.value))} 
+              className="w-full max-w-xs accent-secondary" 
+            />
+            
+            <div className="flex w-full max-w-xs justify-between text-xs text-muted-foreground">
+              <span>0h</span>
+              <span>6h</span>
+              <span>12h</span>
+            </div>
+          </div>
+
+          <button onClick={() => setStep("emotions")} className="safe-harbor-transition rounded-xl bg-primary px-8 py-3 font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98]">
+            Next
+          </button>
         </div>
       )}
 
