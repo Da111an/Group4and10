@@ -62,42 +62,30 @@ The API route is in `server/Controllers/ChatController.cs`, and the frontend hel
 ```
 
 
-User Requirements (EARS)
+## User Requirements (EARS)
 
-COMPLETE:
-1. Ubiquitous
-The System shall allow users to browse all mental health resources
-anonymously without requiring an account, email, phone number, cookies, or
-institutional login.
-2. State-driven
-While the user is browsing any page of the system, the System shall display a
-persistent "SOS" button that is always visible and accessible.
-3. Event-driven
-When the user activates the "Get Immediate Help" button, the System shall
-immediately surface crisis options (e.g., 988, SafeUT, and user-selected trusted
-contacts) without navigating away from the current page.
-4. State-driven
-While the user is exploring resources, the System shall present information in a
-non-judgmental, non-clinical tone that avoids directive language such as "you
-must" or "you should."
+### Complete
 
-INCOMPLETE:
-1. Ubiquitous
-The System shall be accessible on both mobile and desktop devices and load all
-primary content in under 2 seconds on standard mobile data connections.
-2. Event-driven
-When the user selects a filter (e.g., "Open Now," "Free," or "Students Only"), the
-System shall dynamically update the resource list to display only matching and
-currently available resources.
-3. Event-driven
-When the user selects "Student" as their status, the System shall prioritize
-student-specific resources (such as CAPS and university-affiliated clinics) in
-search results without excluding non-student options.
-4. Event-driven
-When the user clicks the "Quick Exit" button, the System shall immediately
-redirect the browser to a neutral external webpage and clear the current session
-state.
-5. Event-driven
-When the user chooses to contact a trusted person instead of a professional, the
-System shall provide optional message templates to reduce the emotional
-burden of reaching out.
+1. **Ubiquitous**  
+   The system shall allow users to browse all mental health resources anonymously without requiring an account, email, phone number, cookies, or institutional login.
+
+2. **State-driven**  
+   While the user is browsing any page of the system, the system shall display a persistent "SOS" button that is always visible and accessible.
+
+3. **Event-driven**  
+   When the user activates the "Get Immediate Help" button, the system shall immediately surface crisis options (e.g., 988, SafeUT, and user-selected trusted contacts) without navigating away from the current page.
+
+4. **State-driven**  
+   While the user is exploring resources, the system shall present information in a non-judgmental, non-clinical tone that avoids directive language such as "you must" or "you should."
+
+5. **Ubiquitous**  
+   The system shall be accessible on both mobile and desktop devices and load all primary content in under 2 seconds on standard mobile data connections.
+
+6. **Event-driven**  
+   When the user selects a filter (e.g.,  "Free," ), the system shall dynamically update the resource list to display only matching and currently available resources.
+### Incomplete
+
+
+
+
+
