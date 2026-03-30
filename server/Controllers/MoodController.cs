@@ -161,18 +161,17 @@ public class MoodController : ControllerBase
         return Ok(result);
     }
 
-    [HttpDelete("today")]
-    public async Task<IActionResult> DeleteToday()
+   [HttpDelete("{date}")]
+    public async Task<IActionResult> DeleteEntry(string date)
     {
         var userAccountId = HttpContext.Session.GetInt32(SessionUserIdKey);
         if (userAccountId is null)
         {
-            return Unauthorized(new { message = "You must be signed in to delete today's check-in." });
+            return Unauthorized(new { message = "You must be signed in to delete a check-in." });
         }
 
-        var todayKey = DateTime.UtcNow.ToString("yyyy-MM-dd");
         var entry = await _dbContext.UserDailyCheckIns
-            .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == todayKey);
+            .SingleOrDefaultAsync(x => x.UserAccountId == userAccountId.Value && x.DateKey == date);
 
         if (entry is null)
         {
