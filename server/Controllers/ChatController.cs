@@ -108,7 +108,7 @@ public class ChatController : ControllerBase
         };
 
         var client = _httpClientFactory.CreateClient();
-        var modelsToTry = new[] { model, "gemini-2.0-flash" }
+        var modelsToTry = new[] { model, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash" }
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -185,10 +185,9 @@ public class ChatController : ControllerBase
                 var friendlyError = TryBuildFriendlyGeminiError(lastError);
                 if (!string.IsNullOrWhiteSpace(friendlyError))
                 {
-                    var fallbackReply = BuildServiceFallbackReply(message, request?.History);
                     return Ok(new
                     {
-                        reply = fallbackReply
+                        reply = friendlyError
                     });
                 }
             }
@@ -304,18 +303,23 @@ public class ChatController : ControllerBase
     private static bool LooksCompleteReply(string reply)
     {
         var text = reply.Trim();
-        if (text.Length < 20)
+        if (text.Length < 5)
         {
             return false;
         }
 
-        if (!(text.EndsWith(".") || text.EndsWith("!") || text.EndsWith("?")))
+        var tail = text.TrimEnd('"', '\'', ')', ']', '}', '*', '`', '>', '…');
+        if (tail.Length == 0)
         {
             return false;
         }
 
-        var sentenceEndCount = text.Count(c => c is '.' or '!' or '?');
-        return sentenceEndCount >= 1;
+        if (tail.EndsWith(".") || tail.EndsWith("!") || tail.EndsWith("?"))
+        {
+            return true;
+        }
+
+        return text.Contains('.') || text.Contains('!') || text.Contains('?');
     }
 
     private static List<string> ExtractEmotions(string emotionsJson)
