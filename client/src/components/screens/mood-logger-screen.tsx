@@ -8,6 +8,7 @@ import {
   Moon,
   Check,
   ArrowLeft,
+  Calendar, // <-- Added Calendar icon for Demo Mode
 } from "lucide-react"
 import type { MoodEntry } from "@/hooks/use-safe-harbor-store"
 import { deleteTodayMood, saveMoodEntry } from "@/api/mood"
@@ -57,6 +58,9 @@ export function MoodLoggerScreen({
   const [step, setStep] = useState<"mood" | "sleep" | "emotions" | "done">(
     todayEntry ? "done" : "mood"
   )
+  
+  // NEW: Demo Date State
+  const [demoDate, setDemoDate] = useState(new Date().toISOString().split("T")[0])
 
   const toggleEmotion = useCallback((tag: string) => {
     setEmotions((prev) =>
@@ -70,7 +74,7 @@ export function MoodLoggerScreen({
 
   const handleSave = useCallback(async () => {
     const payload = {
-      date: new Date().toISOString().split("T")[0],
+      date: demoDate, // <-- UPDATED: Now uses the Demo Date instead of forcing today
       mood,
       sleep,
       emotions,
@@ -86,7 +90,7 @@ export function MoodLoggerScreen({
     onSave(result.entry)
     setSaved(true)
     setStep("done")
-  }, [mood, sleep, emotions, onSave])
+  }, [demoDate, mood, sleep, emotions, onSave]) // Added demoDate to dependencies
 
   const handleEditToday = useCallback(() => {
     setSaved(false)
@@ -213,6 +217,21 @@ export function MoodLoggerScreen({
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Dashboard
       </button>
+
+      {/* --- NEW: DEMO MODE SWITCHER --- */}
+      <div className="flex items-center justify-between rounded-xl border border-dashed border-primary/30 bg-primary/5 p-3">
+        <div className="flex items-center gap-2 text-primary">
+          <Calendar className="h-4 w-4" />
+          <span className="text-xs font-bold uppercase tracking-widest">Demo Mode:</span>
+        </div>
+        <input 
+          type="date" 
+          value={demoDate}
+          onChange={(e) => setDemoDate(e.target.value)}
+          className="bg-transparent text-sm font-semibold text-primary outline-none text-right"
+        />
+      </div>
+      {/* --------------------------------- */}
 
       <div className="flex items-center justify-center gap-2" role="progressbar" aria-valuenow={step === "mood" ? 1 : step === "sleep" ? 2 : 3} aria-valuemin={1} aria-valuemax={3} aria-label="Check-in progress">
         {(["mood", "sleep", "emotions"] as const).map((s) => (
