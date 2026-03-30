@@ -71,10 +71,10 @@ export async function getMoodHistory(): Promise<MoodEntryResponse[]> {
   }
 }
 
-export async function deleteTodayMood(): Promise<{ success: boolean }> {
+export async function deleteMoodEntry(date: string): Promise<{ success: boolean }> {
   try {
     const base = API_BASE || ''
-    const res = await fetch(`${base}/api/mood/today`, {
+    const res = await fetch(`${base}/api/mood/${date}`, {
       method: 'DELETE',
       credentials: 'include',
     })

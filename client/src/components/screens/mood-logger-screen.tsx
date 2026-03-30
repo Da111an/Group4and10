@@ -11,7 +11,7 @@ import {
   Calendar, // <-- Added Calendar icon for Demo Mode
 } from "lucide-react"
 import type { MoodEntry } from "@/hooks/use-safe-harbor-store"
-import { deleteTodayMood, saveMoodEntry } from "@/api/mood"
+import { deleteMoodEntry, saveMoodEntry } from "@/api/mood" // Changed from deleteTodayMood
 
 interface MoodLoggerScreenProps {
   todayEntry: MoodEntry | { mood: number; sleep: number; emotions?: string[] } | undefined
@@ -97,15 +97,24 @@ export function MoodLoggerScreen({
     setStep("mood")
   }, [])
 
-  const handleDeleteAndRedo = useCallback(async () => {
+const handleDeleteAndRedo = useCallback(async () => {
     setIsDeleting(true)
-    const result = await deleteTodayMood()
+    const result = await deleteMoodEntry(demoDate) // <-- Now passes the demo date
     setIsDeleting(false)
 
     if (!result.success) {
-      window.alert("Could not delete today's check-in. Please try again.")
+      window.alert("Could not delete this check-in. Please try again.")
       return
     }
+
+    const resetSleep = 7
+    setMood(0)
+    setSleep(resetSleep)
+    setEmotions([])
+    setSaved(false)
+    setStep("mood")
+    onDeleteToday()
+  }, [demoDate, onDeleteToday]) // <-- Added demoDate to dependencies
 
     const resetSleep = 7
     setMood(0)
