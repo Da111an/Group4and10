@@ -80,7 +80,7 @@ public class ChatController : ControllerBase
 
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
-                reply = "I'm having trouble connecting right now. If things feel heavy, reaching out to 988 or someone you trust could help."
+                reply = "Hey, I'm happy to help. Here are a few support resources right now: call or text 988, talk to someone you trust, or use the SafeHarbor resources tab to find local help. If you're in immediate danger, call 911."
             });
         }
 
