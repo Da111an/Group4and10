@@ -9,7 +9,7 @@ import {
   Sparkles,
   ChevronRight,
   Clock,
-  Target, // <-- Added Target Icon for the OKR
+  Target,
 } from "lucide-react"
 import {
   Area,
@@ -58,11 +58,6 @@ export function DashboardScreen({
   todayEntry,
   onNavigate,
 }: DashboardScreenProps) {
-<<<<<<< HEAD
-  const recentEntries = entries.slice(0, 7).reverse()
-  
-  const chartData = recentEntries.map((e) => {
-=======
   const [trendRange, setTrendRange] = useState<TrendRange>("week")
 
   const sortedEntries = useMemo(
@@ -75,8 +70,7 @@ export function DashboardScreen({
   )
   
   const chartData = trendEntries.map((e) => {
-    // FIX: Split the string to avoid timezone shifting bugs (e.g., Tuesday appearing as Monday)
->>>>>>> d6ddd183d82c47b34493a6253f75bd18f7d08ed9
+    // FIX: Split the string to avoid timezone shifting bugs
     const [year, month, day] = e.date.split("-").map(Number)
     const localDate = new Date(year, month - 1, day)
     
@@ -101,25 +95,17 @@ export function DashboardScreen({
       : "--"
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col gap-5 px-5 pb-28 pt-6" role="main">
+    <div className="flex flex-col gap-5 px-5 pb-28 pt-6 lg:px-8" role="main">
       <div>
         <p className="text-sm text-muted-foreground">{getGreeting()},</p>
         <h1 className="text-2xl font-bold text-foreground">{alias}</h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={() => onNavigate("mood")}
-          className="safe-harbor-transition col-span-2 flex items-center gap-4 rounded-2xl border border-border bg-card p-5 text-left hover:border-primary/30 active:scale-[0.99]"
-=======
-    <div className="flex flex-col gap-5 px-5 pb-28 pt-6 lg:px-8" role="main">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <button
           onClick={() => onNavigate("mood")}
           className="safe-harbor-transition col-span-2 flex items-center gap-4 rounded-2xl border border-border bg-card p-5 text-left hover:border-primary/30 active:scale-[0.99] lg:col-span-2"
           aria-label={todayEntry ? `Today's check-in, ${alias}: You're feeling ${moodLabels[todayEntry.mood]?.toLowerCase()}. Tap to log mood.` : `Daily check-in for ${alias}. Tap to log how you're feeling today.`}
->>>>>>> d6ddd183d82c47b34493a6253f75bd18f7d08ed9
         >
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
@@ -143,14 +129,9 @@ export function DashboardScreen({
           <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
         </button>
 
-<<<<<<< HEAD
-        {/* --- NEW OKR PROGRESS WIDGET --- */}
-        <section className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
+        {/* --- OKR PROGRESS WIDGET --- */}
+        <section className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 lg:col-span-2">
           <div className="flex items-center justify-between">
-=======
-        <section className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 lg:col-span-2 lg:row-span-2" aria-label="Mood trend chart">
-          <div className="flex items-center justify-between gap-3">
->>>>>>> d6ddd183d82c47b34493a6253f75bd18f7d08ed9
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">
@@ -184,8 +165,8 @@ export function DashboardScreen({
         </section>
         {/* ------------------------------- */}
 
-        <section className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between">
+        <section className="col-span-2 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 lg:col-span-2 lg:row-span-2" aria-label="Mood trend chart">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">
@@ -234,12 +215,6 @@ export function DashboardScreen({
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-<<<<<<< HEAD
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis domain={[1, 5]} hide />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "0.75rem", fontSize: "12px" }} formatter={(value: number) => [moodLabels[value], "Mood"]} />
-                  <Area type="monotone" dataKey="mood" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#moodGradient)" />
-=======
                   <XAxis
                     dataKey="day"
                     axisLine={false}
@@ -274,7 +249,6 @@ export function DashboardScreen({
                     strokeWidth={2.5}
                     fill="url(#moodGradient)"
                   />
->>>>>>> d6ddd183d82c47b34493a6253f75bd18f7d08ed9
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -307,34 +281,24 @@ export function DashboardScreen({
           </p>
         </div>
 
-<<<<<<< HEAD
-        <button onClick={() => onNavigate("resources")} className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98]">
-          <BookOpen className="h-5 w-5 text-primary" />
-=======
         <button
           onClick={() => onNavigate("resources")}
           className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98] lg:col-span-2"
           aria-label="View support resources and guides"
         >
           <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
->>>>>>> d6ddd183d82c47b34493a6253f75bd18f7d08ed9
           <div>
             <p className="text-sm font-semibold text-foreground">Resources</p>
             <p className="text-xs text-muted-foreground">Support & guides</p>
           </div>
         </button>
 
-<<<<<<< HEAD
-        <button onClick={() => onNavigate("mood")} className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98]">
-          <Clock className="h-5 w-5 text-secondary" />
-=======
         <button
           onClick={() => onNavigate("history")}
           className="safe-harbor-transition flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:border-primary/30 active:scale-[0.98] lg:col-span-2"
           aria-label={`View mood history. ${entries.length} ${entries.length === 1 ? "entry" : "entries"} logged`}
         >
           <Clock className="h-5 w-5 text-secondary" aria-hidden="true" />
->>>>>>> d6ddd183d82c47b34493a6253f75bd18f7d08ed9
           <div>
             <p className="text-sm font-semibold text-foreground">History</p>
             <p className="text-xs text-muted-foreground">{entries.length} {entries.length === 1 ? "entry" : "entries"}</p>
