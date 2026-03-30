@@ -15,7 +15,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-3 lg:max-w-4xl xl:max-w-6xl">
         <div>
           <p className="text-lg font-semibold text-foreground">SafeHarbor</p>
           {isLoggedIn ? (
@@ -34,7 +34,7 @@ export function AppHeader({
             <button
               type="button"
               onClick={onLogoutClick}
-              className="rounded-lg border px-3 py-2 text-sm font-medium transition hover:bg-muted"
+              className="rounded-lg border border-border/90 bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-white/95"
             >
               Log out
             </button>

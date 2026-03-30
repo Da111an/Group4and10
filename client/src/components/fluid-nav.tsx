@@ -1,8 +1,10 @@
-import { LayoutDashboard, PenLine, BookOpen, Heart } from "lucide-react"
+import { LayoutDashboard, PenLine, BookOpen, MessageCircle, Heart } from "lucide-react"
 
 interface FluidNavProps {
   currentScreen: string
   onNavigate: (screen: string) => void
+  chatOpen: boolean
+  onChatToggle: () => void
   onCrisis: () => void
 }
 
@@ -15,6 +17,8 @@ const NAV_ITEMS = [
 export function FluidNav({
   currentScreen,
   onNavigate,
+  chatOpen,
+  onChatToggle,
   onCrisis,
 }: FluidNavProps) {
   return (
@@ -22,7 +26,7 @@ export function FluidNav({
       className="fixed bottom-0 left-0 right-0 z-40 flex items-end justify-center px-4 pb-4"
       aria-label="Main navigation"
     >
-      <div className="flex w-full max-w-sm items-center justify-between rounded-2xl border border-border/60 bg-card/90 px-2 py-2 shadow-lg backdrop-blur-md">
+      <div className="flex w-full max-w-sm items-center justify-between rounded-2xl border border-border/60 bg-card/90 px-2 py-2 shadow-lg backdrop-blur-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           const isActive = currentScreen === item.key
@@ -43,6 +47,20 @@ export function FluidNav({
             </button>
           )
         })}
+
+        <button
+          onClick={onChatToggle}
+          className={`safe-harbor-transition flex flex-1 flex-col items-center gap-1 rounded-xl px-3 py-2 ${
+            chatOpen
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          aria-pressed={chatOpen}
+          aria-label={chatOpen ? "Hide support chat" : "Open support chat"}
+        >
+          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <span className="text-[10px] font-medium">Chat</span>
+        </button>
 
         <div className="mx-1 h-8 w-px bg-border" />
 

@@ -6,6 +6,7 @@ import { FluidNav } from "@/components/fluid-nav"
 import { CrisisOverlay } from "@/components/crisis-overlay"
 import { getMoodHistory } from "@/api/mood"
 import { AppHeader } from "@/components/app-header"
+import { ChatWidget } from "@/components/chat-widget"
 
 const DashboardScreen = lazy(() =>
   import("@/components/screens/dashboard-screen").then((m) => ({ default: m.DashboardScreen }))
@@ -25,7 +26,7 @@ type Screen = "landing" | "dashboard" | "mood" | "history" | "resources"
 export default function App() {
   const { profile, isLoaded: profileLoaded, login, register, logout, isReturningUser } =
     useUserProfile()
-  const { entries, isLoaded: entriesLoaded, addEntry, setEntriesFromServer, removeEntryByDate } =
+  const { entries, isLoaded: entriesLoaded, setEntriesFromServer, removeEntryByDate } =
     useMoodEntries()
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing")
@@ -35,6 +36,7 @@ export default function App() {
   const [todayStatusLoaded, setTodayStatusLoaded] = useState(false)
   const [checkInPromptOpen, setCheckInPromptOpen] = useState(false)
   const [checkInPromptDismissed, setCheckInPromptDismissed] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
 
   const handleNavigate = useCallback((screen: string) => {
     setCurrentScreen(screen as Screen)
@@ -83,10 +85,10 @@ export default function App() {
   }, [])
 
   const handleSaveEntry = useCallback(
-    (entry: Omit<MoodEntry, "id">) => {
-      addEntry(entry)
+    (entry: MoodEntry) => {
+      setEntriesFromServer([entry, ...entries.filter((existing) => existing.date !== entry.date)])
       setDbEntry({
-        id: crypto.randomUUID(),
+        id: entry.id,
         date: entry.date,
         mood: entry.mood,
         sleep: entry.sleep,
@@ -94,7 +96,7 @@ export default function App() {
       })
       setCheckInPromptOpen(false)
     },
-    [addEntry]
+    [entries, setEntriesFromServer]
   )
 
   const handleDeleteTodayEntry = useCallback(() => {
@@ -181,7 +183,7 @@ export default function App() {
 
   if (currentScreen === "landing") {
     return (
-      <div className="mx-auto min-h-dvh max-w-lg">
+      <div className="mx-auto min-h-dvh max-w-lg lg:max-w-4xl xl:max-w-6xl">
         <LandingScreen
           mode={landingMode}
           onModeChange={setLandingMode}
@@ -195,6 +197,7 @@ export default function App() {
           isOpen={crisisOpen}
           onClose={() => setCrisisOpen(false)}
         />
+        <ChatWidget />
       </div>
     )
   }
@@ -202,7 +205,7 @@ export default function App() {
   // Unauthenticated resources view: allow guest access to crisis/help resources
   if (currentScreen === "resources" && !profile) {
     return (
-      <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+      <div className="mx-auto min-h-dvh max-w-lg lg:max-w-4xl xl:max-w-6xl" id="main-content">
         <AppHeader
           isLoggedIn={false}
           onLoginClick={handleGoToLogin}
@@ -227,12 +230,13 @@ export default function App() {
           isOpen={crisisOpen}
           onClose={() => setCrisisOpen(false)}
         />
+        <ChatWidget />
       </div>
     )
   }
 
   return (
-  <div className="mx-auto min-h-dvh max-w-lg" id="main-content">
+  <div className="mx-auto min-h-dvh max-w-lg lg:max-w-4xl xl:max-w-6xl" id="main-content">
     <AppHeader
       isLoggedIn={!!profile}
       name={profile?.alias ?? "Friend"}
@@ -284,6 +288,8 @@ export default function App() {
     <FluidNav
       currentScreen={currentScreen}
       onNavigate={handleNavigate}
+      chatOpen={chatOpen}
+      onChatToggle={() => setChatOpen((prev) => !prev)}
       onCrisis={() => setCrisisOpen(true)}
     />
 
@@ -323,6 +329,11 @@ export default function App() {
     <CrisisOverlay
       isOpen={crisisOpen}
       onClose={() => setCrisisOpen(false)}
+    />
+    <ChatWidget
+      isOpen={chatOpen}
+      onOpenChange={setChatOpen}
+      showLauncher={false}
     />
   </div>
  )

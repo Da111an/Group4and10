@@ -20,7 +20,7 @@ export interface MoodEntryResponse {
   emotions: string[]
 }
 
-export async function saveMoodEntry(entry: MoodEntryPayload): Promise<{ success: boolean }> {
+export async function saveMoodEntry(entry: MoodEntryPayload): Promise<{ success: boolean; entry?: MoodEntryResponse; message?: string }> {
   try {
     const base = API_BASE || ''
     const res = await fetch(`${base}/api/mood`, {
@@ -29,11 +29,15 @@ export async function saveMoodEntry(entry: MoodEntryPayload): Promise<{ success:
       credentials: 'include',
       body: JSON.stringify(entry),
     })
-    if (!res.ok) throw new Error('Save failed')
-    return { success: true }
+    if (!res.ok) {
+      const errorText = await res.text()
+      return { success: false, message: errorText || 'Save failed' }
+    }
+    const data = (await res.json()) as MoodEntryResponse
+    return { success: true, entry: data }
   } catch (err) {
     console.error('API save error:', err)
-    return { success: false }
+    return { success: false, message: 'Network error while saving check-in.' }
   }
 }
 
